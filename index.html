@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Хвостатый отель</title>
+<meta name="theme-color" content="#fdf3e7">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-32.png" sizes="32x32">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Хвост. отель">
+<style>
+:root{--bg:#fdf3e7;--card:#fff;--ink:#3b2f2a;--muted:#8a7a70;--accent:#ff8a4c;--accent2:#5bb98c;--bad:#e35d5d;--warn:#f2b134;--line:#ecdac6;--track:#f3e6d8}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;touch-action:manipulation;overscroll-behavior:none;-webkit-touch-callout:none}
+#app{max-width:480px;margin:0 auto;padding:0 12px 96px}
+.top{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;gap:8px;padding:calc(10px + env(safe-area-inset-top)) 0 6px}
+.pill{flex:1;background:var(--card);border-radius:14px;padding:6px 8px;font-weight:800;box-shadow:0 2px 0 var(--line);text-align:center;font-size:16px;white-space:nowrap}
+.pill small{display:block;font-weight:500;color:var(--muted);font-size:11px}
+h3{margin:14px 2px 6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:flex;justify-content:space-between}
+.card{background:var(--card);border-radius:16px;padding:10px;box-shadow:0 3px 0 var(--line);position:relative;cursor:pointer;min-height:96px}
+.card:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.card.locked{background:#f6ece1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--muted)}
+.card.locked b{color:var(--ink)}
+.st-head{display:flex;align-items:center;gap:8px}
+.st-icon{font-size:26px;line-height:1}
+.st-name{font-weight:800;font-size:15px}
+.st-sub{font-size:11px;color:var(--muted)}
+.upg{margin-left:auto;background:var(--muted);color:#fff;border:none;border-radius:10px;padding:6px 10px;font-weight:800;font-size:14px;cursor:pointer;font-family:inherit}
+.upg.can{background:var(--accent);animation:pulse 1.2s infinite}
+@keyframes pulse{50%{transform:scale(1.1)}}
+.jobs{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.job{display:flex;align-items:center;gap:6px;font-size:18px;height:22px}
+.job.empty{opacity:.35}
+.bar{flex:1;height:7px;background:var(--track);border-radius:4px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent2);border-radius:4px}
+.queue{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px;min-height:30px;align-items:flex-end}
+.q{width:30px;text-align:center;font-size:22px;line-height:1;position:relative}
+.q .bar{height:4px;margin-top:2px}
+.q sup{position:absolute;top:-6px;right:-4px;font-size:12px}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+.hint.go{color:var(--accent);font-weight:700}
+.rooms{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.room{background:var(--card);border-radius:14px;aspect-ratio:1/1.15;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 3px 0 var(--line);padding:6px}
+.room.empty{background:#f6ece1;color:var(--muted);font-size:11px}
+.room .pet{font-size:32px;line-height:1.1}
+.room .pet.ghost{opacity:.4}
+.room .lbl{font-size:10px;color:var(--muted);margin-top:2px;text-align:center}
+.room .bars{width:100%;display:flex;flex-direction:column;gap:3px;margin-top:4px}
+.room .bar{height:5px;flex:none}
+/* Классы номеров */
+.pv{width:1em;height:1em;display:inline-block;vertical-align:-.15em;overflow:visible}
+.room>*{position:relative;z-index:1}
+.room .decor{position:absolute;z-index:0;font-size:14px;opacity:.85;pointer-events:none}
+.room .decor.l{left:4px;top:3px}.room .decor.r{right:4px;top:3px}
+.room .need{right:-6px;top:-8px}
+.room{cursor:pointer}
+.room .rup{position:absolute;z-index:2;left:50%;top:-9px;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:11px;font-weight:900;border-radius:8px;padding:1px 6px;animation:pulse 1.2s infinite}
+.allbtn{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:4px 10px;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;text-transform:none;letter-spacing:0}
+.allbtn:disabled{background:#cbbfb4}
+.room.cls0{background:#eef0f2 repeating-linear-gradient(90deg,transparent 0 10px,#c9ced4 10px 12px);border:2px solid #b8bec6;box-shadow:0 3px 0 #d5d9de}
+.room.cls1{background:linear-gradient(#fff8ec 62%,#bfe3a3 62%);border:3px solid #c9935a;box-shadow:0 3px 0 #a87442}
+.room.cls2{background:#fff1f3 radial-gradient(circle at 25% 25%,#ffd6de 2px,transparent 3px) 0 0/12px 12px;border:3px solid #f08aa0;box-shadow:0 3px 0 #d96c85}
+.room.cls3{background:linear-gradient(135deg,#4b2a7a,#7b4bb8 55%,#4b2a7a);border:3px solid #f5c542;box-shadow:0 0 0 2px #fff3c4,0 3px 10px #f5c54288;overflow:hidden}
+.room.cls3::after{content:"";position:absolute;inset:0;z-index:0;background:linear-gradient(110deg,transparent 30%,#ffffff40 45%,transparent 60%);background-size:250% 100%;animation:shine 3s linear infinite;pointer-events:none;border-radius:inherit}
+@keyframes shine{from{background-position:150% 0}to{background-position:-100% 0}}
+.room.cls3 .pet .pv{filter:drop-shadow(0 0 2px #ffffffcc) drop-shadow(0 0 5px #f5c54299)}
+.room.cls3 .lbl,.room.cls3.empty{color:#f8e7b0}
+.room.empty.cls0,.room.empty.cls1,.room.empty.cls2{color:var(--muted)}
+.room.empty.cls1{background:linear-gradient(#f9f0e2 62%,#d3e8c4 62%)}
+.need{position:absolute;top:-8px;right:-6px;background:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px #0003;animation:bob .9s infinite;font-size:16px}
+@keyframes bob{50%{transform:translateY(-3px)}}
+.stations{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stations .wide{grid-column:1/-1}
+.bottom{position:fixed;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 30%);display:flex;justify-content:center;z-index:6}
+.bigbtn{max-width:456px;width:100%;background:var(--ink);color:#fff;border:none;border-radius:16px;padding:14px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit}
+#back{position:fixed;inset:0;background:#0006;z-index:20;display:none}
+#sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;display:none;justify-content:center}
+#sheet .in{background:var(--bg);width:100%;max-width:480px;border-radius:22px 22px 0 0;padding:16px 14px calc(18px + env(safe-area-inset-bottom));max-height:80vh;overflow:auto}
+.sh-title{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:800;margin-bottom:4px}
+.sh-sub{color:var(--muted);font-size:13px;margin-bottom:10px}
+.row{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:14px;padding:10px 12px;margin-top:8px;box-shadow:0 2px 0 var(--line)}
+.row div{flex:1}
+.row small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.buy{background:var(--accent2);color:#fff;border:none;border-radius:12px;padding:10px 12px;font-weight:800;font-size:14px;min-width:92px;cursor:pointer;font-family:inherit}
+.buy:disabled{background:#cbbfb4}
+.buy.done{background:transparent;color:var(--accent2)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.stats div{background:var(--card);border-radius:12px;padding:8px 10px;font-size:12px;color:var(--muted)}
+.stats b{display:block;color:var(--ink);font-size:16px}
+.link{background:none;border:none;color:var(--bad);margin-top:16px;font-size:13px;cursor:pointer;font-family:inherit}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:30}
+.fl{position:absolute;font-weight:900;font-size:18px;transform:translate(-50%,-50%);animation:fl 1s ease-out forwards;text-shadow:0 1px 0 #fff}
+@keyframes fl{to{transform:translate(-50%,-160%);opacity:0}}
+#toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 14px;border-radius:12px;font-size:14px;z-index:25;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;text-align:center}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="bottom"><button class="bigbtn" data-act="hotel">🏨 Управление отелем</button></div>
+<div id="back" data-act="close"></div>
+<div id="sheet"><div class="in" id="sheetIn"></div></div>
+<div id="fx"></div>
+<div id="toast"></div>
+<script>
+'use strict';
+// ---------- Модельки питомцев (SVG, размер = font-size) ----------
+function catSvg(){
+  return `<svg class="pv" viewBox="0 0 64 64">
+    <path d="M9 34 L12 5 L29 19 Z" fill="#26262e"/><path d="M55 34 L52 5 L35 19 Z" fill="#26262e"/>
+    <path d="M14 26 L15 12 L24 20 Z" fill="#e88aa0"/><path d="M50 26 L49 12 L40 20 Z" fill="#e88aa0"/>
+    <ellipse cx="32" cy="38" rx="24" ry="20" fill="#26262e"/>
+    <ellipse cx="22.5" cy="35" rx="5.5" ry="6.5" fill="#d9e84a"/><ellipse cx="41.5" cy="35" rx="5.5" ry="6.5" fill="#d9e84a"/>
+    <ellipse cx="22.5" cy="35" rx="1.8" ry="5.2" fill="#111"/><ellipse cx="41.5" cy="35" rx="1.8" ry="5.2" fill="#111"/>
+    <circle cx="20.5" cy="32" r="1.4" fill="#fff"/><circle cx="39.5" cy="32" r="1.4" fill="#fff"/>
+    <path d="M29 44 L35 44 L32 47.5 Z" fill="#f08aa6"/>
+    <path d="M32 47.5 Q29 51 26 49 M32 47.5 Q35 51 38 49" stroke="#5a5a66" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+    <path d="M6 42 L20 44 M6 48 L20 46 M58 42 L44 44 M58 48 L44 46" stroke="#8b8b98" stroke-width="1.1" stroke-linecap="round"/>
+  </svg>`;
+}
+function spitzSvg(){
+  let fluff='';
+  for(let i=0;i<14;i++){const a=i/14*Math.PI*2;fluff+=`<circle cx="${(32+23*Math.cos(a)).toFixed(1)}" cy="${(37+21*Math.sin(a)).toFixed(1)}" r="8" fill="#e8892f"/>`;}
+  return `<svg class="pv" viewBox="0 0 64 64">
+    ${fluff}
+    <path d="M12 26 L16 1 L31 16 Z" fill="#d97a22"/><path d="M52 26 L48 1 L33 16 Z" fill="#d97a22"/>
+    <path d="M16.5 20 L18 7 L26 15 Z" fill="#fbd3a0"/><path d="M47.5 20 L46 7 L38 15 Z" fill="#fbd3a0"/>
+    <circle cx="32" cy="37" r="21" fill="#f4a64c"/>
+    <ellipse cx="32" cy="45" rx="12" ry="9" fill="#fde6c2"/>
+    <circle cx="24" cy="34" r="3.8" fill="#1d1410"/><circle cx="40" cy="34" r="3.8" fill="#1d1410"/>
+    <circle cx="25.2" cy="32.8" r="1.2" fill="#fff"/><circle cx="41.2" cy="32.8" r="1.2" fill="#fff"/>
+    <ellipse cx="32" cy="41.5" rx="3.6" ry="2.7" fill="#1d1410"/>
+    <path d="M32 44 L32 46 M27.5 46 Q32 50 36.5 46" stroke="#1d1410" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+    <path d="M30 47.5 Q32 53 34 47.5 Z" fill="#f07c8c"/>
+  </svg>`;
+}
+// ---------- Данные ----------
+const PET = {
+  cat:{emoji:catSvg(),name:'Чёрный кот',stay:25,base:10,needs:['food'],every:[7,12]},
+  dog:{emoji:spitzSvg(),name:'Шпиц',stay:35,base:18,needs:['food','walk','walk'],every:[6,10]},
+};
+const NEED = {food:{icon:'🍖',busy:'🍽️'},walk:{icon:'🎾',busy:'🦮'}};
+const ST = {
+  reception:{name:'Ресепшен',icon:'🛎️',time:3,cost:15,mgr:120,verb:'принять гостя'},
+  kitchen:{name:'Кухня',icon:'🍖',time:4,cost:20,mgr:200,verb:'покормить',need:'food'},
+  walk:{name:'Выгул',icon:'🦮',time:6,cost:40,mgr:350,verb:'выгулять',need:'walk'},
+  checkout:{name:'Выписка',icon:'💳',time:3,cost:15,mgr:150,verb:'выписать гостя'},
+};
+const ROOM_CLS = ['Клетка','Вольер','Комфорт','Люкс'];
+const MAX = {lvl:15,slots:4,rooms:12,cls:3,ads:10};
+const QUEUE_MAX = 6, PATIENCE = 30, SAVE_KEY = 'pethotel_v1';
+
+function fresh(){
+  const st={}; for(const k in ST) st[k]={lvl:0,slots:1,mgr:false,jobs:[]};
+  return {money:30,reviews:[4,4,4,5],dogs:false,rooms:2,roomCls:[0,0],ads:0,st,pets:[],seq:1,
+    nextArrival:1.5,earn:[],ips:0,t:0,saved:Date.now(),served:0,lost:0,tips:{}};
+}
+let S = load() || fresh();
+// миграция старых сохранений: общий класс → класс каждого номера
+if(!S.roomCls)S.roomCls=Array(S.rooms).fill(S.cls||0);
+while(S.roomCls.length<S.rooms)S.roomCls.push(0);
+S.pets.forEach(p=>{if(p.rc==null&&p.room!=null)p.rc=S.roomCls[p.room]||0});
+delete S.cls;
+
+// ---------- Утилиты ----------
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const $=id=>document.getElementById(id);
+function fmt(n){n=Math.floor(n);if(n<1000)return ''+n;const u=['K','M','B','T'];let i=-1;while(n>=1000&&i<u.length-1){n/=1000;i++}return n.toFixed(n<10?2:1).replace(/\.?0+$/,'')+u[i]}
+const rating=()=>S.reviews.reduce((a,b)=>a+b,0)/S.reviews.length;
+const pet=id=>S.pets.find(p=>p.id===id);
+const stTime=k=>ST[k].time*Math.pow(0.85,S.st[k].lvl);
+const clsMult=c=>1+0.5*c;
+const upgradable=()=>S.roomCls.map((c,i)=>i).filter(i=>S.roomCls[i]<MAX.cls);
+const cost={
+  lvl:k=>Math.round(ST[k].cost*Math.pow(1.6,S.st[k].lvl)),
+  slots:k=>Math.round(ST[k].cost*6*Math.pow(3,S.st[k].slots-1)),
+  mgr:k=>ST[k].mgr,
+  room:()=>Math.round(40*Math.pow(1.7,S.rooms-2)),
+  roomUp:i=>Math.round(60*Math.pow(4,S.roomCls[i])),
+  all:()=>upgradable().reduce((a,i)=>a+cost.roomUp(i),0),
+  ads:()=>Math.round(80*Math.pow(2,S.ads)),
+  dogs:()=>400,
+};
+function arrivalInterval(){
+  const m=Math.pow(rating()/4,1.5)*(1+0.2*S.ads);
+  return Math.max(1.2,8/m);
+}
+
+// ---------- Сохранение ----------
+function save(){S.saved=Date.now();try{localStorage.setItem(SAVE_KEY,JSON.stringify(S))}catch(e){}}
+function load(){try{const s=localStorage.getItem(SAVE_KEY);return s?JSON.parse(s):null}catch(e){return null}}
+
+// ---------- Логика ----------
+function queue(k){
+  if(k==='reception')return S.pets.filter(p=>p.state==='queue'&&!p.busy);
+  if(k==='checkout')return S.pets.filter(p=>p.state==='out'&&!p.busy);
+  const need=ST[k].need;
+  return S.pets.filter(p=>p.state==='room'&&p.need===need&&!p.busy);
+}
+function freeRoom(){
+  const used=new Set(S.pets.filter(p=>p.room!=null).map(p=>p.room));
+  for(let i=0;i<S.rooms;i++)if(!used.has(i))return i;
+  return -1;
+}
+function startJob(k){
+  const s=S.st[k];
+  if(k==='walk'&&!S.dogs)return 'locked';
+  if(s.jobs.length>=s.slots)return 'full';
+  const q=queue(k); if(!q.length)return 'empty';
+  const p=q[0];
+  if(k==='reception'){const r=freeRoom(); if(r<0)return 'norooms'; p.room=r;}
+  p.busy=true; const t=stTime(k); s.jobs.push({id:p.id,left:t,total:t});
+  return 'ok';
+}
+function finishJob(k,p){
+  if(!p)return;
+  p.busy=false;
+  const T=PET[p.type];
+  if(k==='reception'){p.state='room';p.rc=S.roomCls[p.room]||0;p.stay=T.stay;p.needT=rnd(...T.every)*0.5;}
+  else if(k==='checkout'){pay(p);}
+  else {p.need=null;p.mood=Math.min(100,p.mood+8);p.needT=rnd(...T.every);}
+}
+function pay(p){
+  const T=PET[p.type];
+  const stars=p.mood>=80?5:p.mood>=60?4:p.mood>=40?3:p.mood>=20?2:1;
+  let amt=T.base*clsMult(p.rc||0)*(0.4+p.mood/100*0.8);
+  if(stars===5)amt*=1.25;
+  amt=Math.max(1,Math.round(amt));
+  S.money+=amt; S.earn.push([S.t,amt]); S.served++;
+  S.reviews.push(stars); if(S.reviews.length>20)S.reviews.shift();
+  S.pets=S.pets.filter(x=>x!==p);
+  floatAt('st-checkout','+'+fmt(amt)+' 💰','#2f9a68');
+  floatAt('st-checkout','⭐'.repeat(stars),'#e0a100',18);
+}
+function tap(k){
+  const r=startJob(k);
+  if(r==='ok'){floatAt('st-'+k,'👍','#ff8a4c');return}
+  const s=S.st[k];
+  if(s.jobs.length){ // ускоряем текущую работу
+    s.jobs.forEach(j=>j.left-=0.5);
+    floatAt('st-'+k,'⚡','#ff8a4c'); return;
+  }
+  if(r==='norooms')toast('Нет свободных номеров — купите ещё в «Управлении отелем»');
+  else if(r==='empty')floatAt('st-'+k,'пусто','#8a7a70');
+}
+function tick(dt){
+  S.t+=dt;
+  // новые гости
+  S.nextArrival-=dt;
+  if(S.nextArrival<=0){
+    S.nextArrival=arrivalInterval()*rnd(0.7,1.3);
+    if(S.pets.filter(p=>p.state==='queue').length<QUEUE_MAX){
+      const type=S.dogs&&Math.random()<0.45?'dog':'cat';
+      S.pets.push({id:S.seq++,type,state:'queue',pat:PATIENCE,mood:100,room:null,need:null,busy:false,stay:0,needT:0});
+    } else S.lost++;
+  }
+  // станции
+  for(const k in ST){
+    const s=S.st[k];
+    s.jobs.forEach(j=>j.left-=dt);
+    const done=s.jobs.filter(j=>j.left<=0);
+    if(done.length){s.jobs=s.jobs.filter(j=>j.left>0);done.forEach(j=>finishJob(k,pet(j.id)));}
+    if(s.mgr)while(startJob(k)==='ok');
+  }
+  // питомцы
+  for(const p of [...S.pets]){
+    if(p.state==='queue'&&!p.busy){
+      p.pat-=dt;
+      if(p.pat<=0){S.pets=S.pets.filter(x=>x!==p);S.lost++;toastOnce('left','😤 Хозяин не дождался и ушёл. Принимайте гостей быстрее!');}
+    } else if(p.state==='room'){
+      if(p.stay>0)p.stay-=dt;
+      if(!p.need&&!p.busy){
+        p.needT-=dt;
+        if(p.needT<=0&&p.stay>2){
+          p.need=pick(PET[p.type].needs);
+          if(p.need==='food')toastOnce('food','🍖 Гость проголодался — тапни по кухне!');
+          if(p.need==='walk')toastOnce('walk','🎾 Шпиц хочет гулять — тапни по выгулу!');
+        }
+      }
+      if(p.need&&!p.busy)p.mood=Math.max(0,p.mood-3*dt);
+      if(p.stay<=0&&!p.need&&!p.busy){p.state='out';p.room=null;toastOnce('out','💳 Гость готов уехать — тапни по выписке!');}
+    } else if(p.state==='out'&&!p.busy){
+      p.mood=Math.max(0,p.mood-1*dt);
+    }
+  }
+  // доход в секунду (окно 120 с)
+  S.earn=S.earn.filter(e=>S.t-e[0]<120);
+  const win=Math.min(120,Math.max(10,S.t));
+  S.ips=S.earn.reduce((a,e)=>a+e[1],0)/win;
+}
+function canAutoRun(){return S.st.reception.mgr&&S.st.checkout.mgr&&S.st.kitchen.mgr}
+function offline(){
+  const sec=(Date.now()-S.saved)/1000;
+  if(sec<30||!canAutoRun()||S.ips<=0)return;
+  const gain=Math.round(S.ips*Math.min(sec,7200)*0.5);
+  if(gain<1)return;
+  S.money+=gain;
+  const m=Math.floor(Math.min(sec,7200)/60);
+  openCustom(`<div class="sh-title">🌙 Пока вас не было</div>
+    <div class="sh-sub">Менеджеры работали ${m>0?m+' мин':'немного'} и заработали:</div>
+    <div style="font-size:34px;font-weight:900;text-align:center;margin:14px 0">+${fmt(gain)} 💰</div>
+    <button class="bigbtn" data-act="close">Забрать</button>`);
+}
+
+// ---------- Покупки ----------
+function buy(what,k){
+  let c,ok=false;
+  if(what==='lvl'){if(S.st[k].lvl>=MAX.lvl)return;c=cost.lvl(k);if(S.money>=c){S.st[k].lvl++;ok=true}}
+  if(what==='slots'){if(S.st[k].slots>=MAX.slots)return;c=cost.slots(k);if(S.money>=c){S.st[k].slots++;ok=true}}
+  if(what==='mgr'){if(S.st[k].mgr)return;c=cost.mgr(k);if(S.money>=c){S.st[k].mgr=true;ok=true;toast('🤖 Менеджер нанят: '+ST[k].name+' работает сама')}}
+  if(what==='room'){if(S.rooms>=MAX.rooms)return;c=cost.room();if(S.money>=c){S.rooms++;S.roomCls.push(0);ok=true}}
+  if(what==='roomUp'){const i=+k;if(S.roomCls[i]>=MAX.cls)return;c=cost.roomUp(i);if(S.money>=c){S.roomCls[i]++;upgradedRoom(i);ok=true}}
+  if(what==='clsAll'){const list=upgradable();if(!list.length)return;c=cost.all();if(S.money>=c){list.forEach(i=>{S.roomCls[i]++;upgradedRoom(i)});ok=true;toast('✨ Улучшено номеров: '+list.length)}}
+  if(what==='ads'){if(S.ads>=MAX.ads)return;c=cost.ads();if(S.money>=c){S.ads++;ok=true}}
+  if(what==='dogs'){if(S.dogs)return;c=cost.dogs();if(S.money>=c){S.dogs=true;ok=true;toast('🐾 Теперь принимаем шпицев! Не забывайте их выгуливать')}}
+  if(ok){S.money-=c;save()}
+}
+function upgradedRoom(i){
+  // гость, который уже живёт в номере, сразу получает новый класс
+  const p=S.pets.find(x=>x.room===i&&x.state==='room');if(p)p.rc=S.roomCls[i];
+  setTimeout(()=>floatAt('room-'+i,'✨','#f5c542'),150);
+}
+
+// ---------- Отрисовка ----------
+let sheet=null; // {type:'st',k} | {type:'hotel'} | {type:'custom'}
+function anyUpg(k){
+  const s=S.st[k];
+  return (s.lvl<MAX.lvl&&S.money>=cost.lvl(k))||(s.slots<MAX.slots&&S.money>=cost.slots(k))||(!s.mgr&&S.money>=cost.mgr(k));
+}
+function stationCard(k,wide){
+  const s=S.st[k],D=ST[k];
+  if(k==='walk'&&!S.dogs){
+    return `<div class="card locked ${wide?'wide':''}" data-act="dogs"><div style="font-size:28px">🔒${PET.dog.emoji}</div><b>Выгул</b><div class="st-sub">Откройте шпицев за ${cost.dogs()} 💰</div></div>`;
+  }
+  const q=queue(k);
+  let jobs='';
+  for(let i=0;i<s.slots;i++){
+    const j=s.jobs[i];
+    if(j){const p=pet(j.id);jobs+=`<div class="job"><span>${p?PET[p.type].emoji:'❔'}</span><div class="bar"><i style="width:${Math.min(100,(1-j.left/j.total)*100)}%"></i></div></div>`;}
+    else jobs+=`<div class="job empty"><span>⬜</span><div class="bar"></div></div>`;
+  }
+  const qh=q.slice(0,6).map(p=>{
+    const e=PET[p.type].emoji;
+    if(k==='reception'){const f=p.pat/PATIENCE;return `<span class="q">${e}<div class="bar"><i style="width:${f*100}%;background:${f>.5?'var(--accent2)':f>.25?'var(--warn)':'var(--bad)'}"></i></div></span>`}
+    return `<span class="q">${e}</span>`;
+  }).join('')+(q.length>6?`<span class="q" style="font-size:13px">+${q.length-6}</span>`:'');
+  let hint;
+  if(s.mgr)hint=`<div class="hint">🤖 Работает менеджер · тап — ускорить</div>`;
+  else if(q.length&&s.jobs.length<s.slots)hint=`<div class="hint go">👆 Тапни, чтобы ${D.verb}</div>`;
+  else if(s.jobs.length)hint=`<div class="hint">👆 Тап — ускорить</div>`;
+  else hint=`<div class="hint">Очередь пуста</div>`;
+  if(k==='reception'&&q.length&&freeRoom()<0&&s.jobs.length===0)hint=`<div class="hint" style="color:var(--bad)">Нет свободных номеров!</div>`;
+  return `<div class="card ${wide?'wide':''}" id="st-${k}" data-act="tap" data-k="${k}">
+    <div class="st-head"><span class="st-icon">${D.icon}</span><div><div class="st-name">${D.name}</div><div class="st-sub">ур. ${s.lvl+1} · ${stTime(k).toFixed(1)} с</div></div>
+    <button class="upg ${anyUpg(k)?'can':''}" data-act="open" data-k="${k}">⬆</button></div>
+    <div class="jobs">${jobs}</div>
+    <div class="queue">${qh}</div>${hint}</div>`;
+}
+const ROOM_DECOR=[['',''],['🌿','🥣'],['🛋️','🧸'],['👑','✨']];
+const ROOM_BED=['🧺','🪵','🛏️','🛏️'];
+function roomTile(i){
+  const p=S.pets.find(x=>x.room===i);
+  const rc=S.roomCls[i];
+  const c=`cls${rc}`, id=`id="room-${i}" data-act="room" data-k="${i}"`;
+  const dec=ROOM_DECOR[rc].map((d,j)=>d?`<span class="decor ${j?'r':'l'}">${d}</span>`:'').join('')
+    +(rc<MAX.cls&&S.money>=cost.roomUp(i)?'<span class="rup">⬆</span>':'');
+  if(!p)return `<div class="room empty ${c}" ${id}>${dec}<div style="font-size:24px;opacity:.6">${ROOM_BED[rc]}</div>свободно</div>`;
+  const T=PET[p.type];
+  if(p.state==='queue')return `<div class="room ${c}" ${id}>${dec}<div class="pet ghost">${T.emoji}</div><div class="lbl">заселяется…</div></div>`;
+  const moodC=p.mood>60?'var(--accent2)':p.mood>30?'var(--warn)':'var(--bad)';
+  const stayF=Math.max(0,1-p.stay/T.stay);
+  let st=p.busy&&p.need?NEED[p.need].busy:'';
+  const bubble=p.need&&!p.busy?`<div class="need">${NEED[p.need].icon}</div>`:'';
+  return `<div class="room ${c}" ${id}>${dec}${bubble}<div class="pet ${p.busy?'ghost':''}">${T.emoji}</div>
+    <div class="lbl">${st||(p.stay<=0?'уезжает':Math.ceil(p.stay)+' с')}</div>
+    <div class="bars"><div class="bar"><i style="width:${p.mood}%;background:${moodC}"></i></div><div class="bar"><i style="width:${stayF*100}%;background:#9fb7e8"></i></div></div></div>`;
+}
+function render(){
+  const inRooms=S.pets.filter(p=>p.room!=null).length;
+  const r=rating();
+  let rooms='';for(let i=0;i<S.rooms;i++)rooms+=roomTile(i);
+  $('app').innerHTML=`
+    <div class="top">
+      <div class="pill">${fmt(S.money)} 💰<small>${S.ips>0?'+'+S.ips.toFixed(1)+'/с':'деньги'}</small></div>
+      <div class="pill">${r.toFixed(1)} ⭐<small>рейтинг</small></div>
+      <div class="pill">${inRooms}/${S.rooms} 🐾<small>гостей</small></div>
+    </div>
+    <h3><span>Вход</span></h3>
+    ${stationCard('reception')}
+    <h3><span>Номера <small style="text-transform:none;letter-spacing:0">· тап — улучшить</small></span>${upAllBtn()}</h3>
+    <div class="rooms">${rooms}</div>
+    <h3><span>Уход</span></h3>
+    <div class="stations">${stationCard('kitchen')}${stationCard('walk')}${stationCard('checkout',true)}</div>`;
+  if(sheet&&sheet.type!=='custom')renderSheet();
+}
+function upAllBtn(){
+  if(!upgradable().length)return '<span>все Люкс 👑</span>';
+  const c=cost.all();
+  return `<button class="allbtn" data-act="buy" data-what="clsAll" ${S.money>=c?'':'disabled'}>⬆ все · ${fmt(c)} 💰</button>`;
+}
+function row(title,desc,what,k,c,maxed,doneText){
+  let btn;
+  if(maxed)btn=`<button class="buy done" disabled>${doneText||'МАКС'}</button>`;
+  else btn=`<button class="buy" data-act="buy" data-what="${what}" ${k!=null?`data-k="${k}"`:''} ${S.money>=c?'':'disabled'}>${fmt(c)} 💰</button>`;
+  return `<div class="row"><div><b>${title}</b><small>${desc}</small></div>${btn}</div>`;
+}
+function renderSheet(){
+  let h='';
+  if(sheet.type==='st'){
+    const k=sheet.k,s=S.st[k],D=ST[k];
+    h=`<div class="sh-title"><span>${D.icon}</span>${D.name}</div>
+      <div class="sh-sub">Баланс: ${fmt(S.money)} 💰</div>
+      ${row(`Ускорить · ур. ${s.lvl+1}/${MAX.lvl+1}`,`${stTime(k).toFixed(1)} с → ${(stTime(k)*0.85).toFixed(1)} с на гостя`,'lvl',k,cost.lvl(k),s.lvl>=MAX.lvl)}
+      ${row(`Ещё одно место · ${s.slots}/${MAX.slots}`,'Обслуживать нескольких гостей сразу','slots',k,cost.slots(k),s.slots>=MAX.slots)}
+      ${row('Менеджер','Станция работает сама, даже когда вы не в игре','mgr',k,cost.mgr(k),s.mgr,'Нанят ✅')}`;
+  } else if(sheet.type==='room'){
+    const i=sheet.k,rc=S.roomCls[i];
+    const p=S.pets.find(x=>x.room===i&&x.state==='room');
+    const steps=ROOM_CLS.map((n,j)=>`<span style="opacity:${j<=rc?1:.4};font-weight:${j===rc?800:500}">${n}</span>`).join(' → ');
+    h=`<div class="sh-title"><span>${ROOM_DECOR[rc][0]||ROOM_BED[rc]}</span>Номер ${i+1} · ${ROOM_CLS[rc]}</div>
+      <div class="sh-sub">Оплата гостя ×${clsMult(rc).toFixed(1)} · Баланс: ${fmt(S.money)} 💰<br>${steps}</div>
+      <div class="rooms" style="grid-template-columns:repeat(4,1fr);margin:6px 0 4px">${[0,1,2,3].map(j=>`<div class="room empty cls${j}" style="font-size:10px">${ROOM_DECOR[j].map((d,q)=>d?`<span class="decor ${q?'r':'l'}">${d}</span>`:'').join('')}<div style="font-size:20px">${ROOM_BED[j]}</div>${ROOM_CLS[j]}</div>`).join('')}</div>
+      ${row(rc<MAX.cls?`Улучшить до «${ROOM_CLS[rc+1]}»`:'Максимальный класс',rc<MAX.cls?`Оплата ×${clsMult(rc).toFixed(1)} → ×${clsMult(rc+1).toFixed(1)}${p?' · гость получит сразу':''}`:'Лучший номер в отеле','roomUp',i,rc<MAX.cls?cost.roomUp(i):0,rc>=MAX.cls,'Люкс 👑')}
+      ${row('Улучшить все номера',upgradable().length?`Каждый номер на 1 класс выше (${upgradable().length} шт.)`:'Все номера — Люкс','clsAll',null,cost.all(),!upgradable().length)}`;
+  } else {
+    h=`<div class="sh-title"><span>🏨</span>Управление отелем</div>
+      <div class="sh-sub">Баланс: ${fmt(S.money)} 💰</div>
+      ${row(`Новый номер · ${S.rooms}/${MAX.rooms}`,'Больше гостей одновременно','room',null,cost.room(),S.rooms>=MAX.rooms)}
+      ${row('Улучшить все номера',upgradable().length?`Каждый номер на 1 класс выше (${upgradable().length} шт.)`:'Все номера — Люкс','clsAll',null,cost.all(),!upgradable().length)}
+      ${row(`Реклама · ур. ${S.ads}/${MAX.ads}`,'Гости приходят чаще','ads',null,cost.ads(),S.ads>=MAX.ads)}
+      ${row(`Шпицы ${PET.dog.emoji}`,'Платят больше, но просятся гулять','dogs',null,cost.dogs(),S.dogs,'Открыто ✅')}
+      <div class="stats">
+        <div>Обслужено<b>${S.served}</b></div>
+        <div>Ушли без заселения<b>${S.lost}</b></div>
+        <div>Доход<b>${S.ips.toFixed(1)} 💰/с</b></div>
+        <div>Офлайн-доход<b>${canAutoRun()?'✅ работает':'❌ нужны менеджеры'}</b></div>
+      </div>
+      <div class="sh-sub" style="margin-top:8px">Офлайн-доход работает, когда наняты менеджеры на ресепшене, кухне и выписке.</div>
+      <button class="link" data-act="reset">Начать заново</button>`;
+  }
+  $('sheetIn').innerHTML=h;
+}
+function openSheet(s){sheet=s;$('back').style.display='block';$('sheet').style.display='flex';renderSheet()}
+function openCustom(html){sheet={type:'custom'};$('back').style.display='block';$('sheet').style.display='flex';$('sheetIn').innerHTML=html}
+function closeSheet(){sheet=null;$('back').style.display='none';$('sheet').style.display='none'}
+
+// ---------- Эффекты ----------
+function floatAt(id,text,color,dy){
+  const el=$(id);if(!el)return;
+  const r=el.getBoundingClientRect();
+  const d=document.createElement('div');d.className='fl';d.textContent=text;d.style.color=color;
+  d.style.left=(r.left+r.width/2+rnd(-20,20))+'px';d.style.top=(r.top+r.height/2+(dy||0))+'px';
+  $('fx').appendChild(d);setTimeout(()=>d.remove(),1000);
+}
+let toastT;
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600)}
+function toastOnce(key,m){if(S.tips[key])return;S.tips[key]=1;toast(m)}
+
+// ---------- Ввод ----------
+document.addEventListener('pointerdown',e=>{
+  const el=e.target.closest('[data-act]');if(!el)return;
+  const a=el.dataset.act,k=el.dataset.k;
+  if(a==='tap')tap(k);
+  else if(a==='open')openSheet({type:'st',k});
+  else if(a==='hotel')openSheet({type:'hotel'});
+  else if(a==='close')closeSheet();
+  else if(a==='buy')buy(el.dataset.what,k);
+  else if(a==='dogs')openSheet({type:'hotel'});
+  else if(a==='room')openSheet({type:'room',k:+k});
+  else if(a==='reset'){if(confirm('Сбросить весь прогресс?')){S=fresh();save();closeSheet()}}
+});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden)save();
+  else{offline();last=performance.now()}
+});
+window.addEventListener('pagehide',save);
+
+// ---------- Цикл ----------
+let last=performance.now(),acc=0,saveAcc=0;
+function loop(now){
+  const dt=Math.min(10,Math.max(0,(now-last)/1000));last=now;
+  for(let r=dt;r>0;r-=0.1)tick(Math.min(0.1,r)); // шаги по 0.1 с, чтобы не тормозило на медленных кадрах
+  acc+=dt;saveAcc+=dt;
+  if(acc>=0.1){acc=0;render()}
+  if(saveAcc>=3){saveAcc=0;save()}
+  requestAnimationFrame(loop);
+}
+render();
+offline();
+toastOnce('start','👋 Добро пожаловать! Тапай по ресепшену, чтобы заселить гостя');
+requestAnimationFrame(loop);
+// офлайн-режим и установка на экран «Домой»
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
