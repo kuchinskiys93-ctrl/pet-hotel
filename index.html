@@ -99,7 +99,7 @@ h3{margin:14px 2px 6px;font-size:12px;color:var(--muted);text-transform:uppercas
 #hud .top{position:static}
 #hud h3{margin:4px 2px 6px;align-items:center}
 #sceneWrap{position:relative;width:100%;overflow:hidden;border-radius:16px;background:#f6ead8;box-shadow:0 3px 0 var(--line)}
-#scene{position:absolute;left:0;top:0;width:360px;height:516px;transform-origin:0 0}
+#scene{position:absolute;left:0;top:0;width:360px;height:492px;transform-origin:0 0}
 #plan,#sprites{position:absolute;inset:0}
 #sprites{pointer-events:none}
 .paths{position:absolute;left:0;top:0}
@@ -200,7 +200,7 @@ const ST = {
 };
 const ROOM_CLS = ['Клетка','Вольер','Комфорт','Люкс'];
 const MAX = {lvl:15,slots:4,rooms:12,cls:3,ads:10};
-const QUEUE_MAX = 6, PATIENCE = 30, VERSION = '1.2';
+const QUEUE_MAX = 6, PATIENCE = 30, VERSION = '1.2.1';
 // 1.2 хранит прогресс под своим ключом, а сохранение 1.1 не трогает — так откат на 1.1 безопасен
 const SAVE_KEY = 'pethotel_v2', OLD_SAVE_KEY = 'pethotel_v1';
 
@@ -246,7 +246,7 @@ function save(){S.saved=Date.now();try{localStorage.setItem(SAVE_KEY,JSON.string
 function load(){try{const s=localStorage.getItem(SAVE_KEY)||localStorage.getItem(OLD_SAVE_KEY);return s?JSON.parse(s):null}catch(e){return null}}
 
 // ---------- План отеля (логические пиксели; экран масштабирует сцену под ширину) ----------
-const SW=360, SH=516;
+const SW=360, SH=492;
 const RX=[4,92,188,276], RW=80, RH=70;
 const ROWY=r=>6+r*78, SPX=180;                           // ряды номеров и центральная дорожка
 const HX=SPX, HY=252;                                    // «лаз» под блоком номеров: ныряешь — и ты в номере
@@ -266,8 +266,8 @@ const fromRoom=()=>[{dive:1},{tp:1,x:HX,y:HY}];
 function brKitchen(j){const h={x:24+j*34,y:SERVY+64};return [h,{x:h.x,y:DOORY},{x:150,y:DOORY},{x:SPX,y:DOORY}]}
 function brYard(j,isPet){const x=232+j*34,h={x,y:isPet?SERVY+40:SERVY+66};return [h,{x,y:DOORY},{x:210,y:DOORY},{x:SPX,y:DOORY}]}
 function brDesk(k,j){const x=deskX(k,j);return [{x,y:FRONTY},{x,y:WALKY},{x:SPX,y:WALKY}]}
-function brWait(i){const x=214+Math.min(i,5)*24;return [{x,y:QY},{x,y:WALKY},{x:SPX,y:WALKY}]}
-const queueSpot=i=>({x:150-Math.min(i,5)*26,y:QY});
+function brWait(i){return [{x:204+Math.min(i,5)*24,y:WALKY},{x:SPX,y:WALKY}]}
+const queueSpot=i=>({x:156-Math.min(i,5)*24,y:WALKY});
 
 const DIVE=0.3;
 function stepTo(e,dt,speed){
@@ -320,7 +320,7 @@ function startCheckin(want){
   const q=inQueue();if(!q.length)return 'empty';
   const p=want&&q.includes(want)?want:q[0];
   const r=freeRoom();if(r<0)return 'norooms';
-  p.state='checkin';p.room=r;p.rc=S.roomCls[r]||0;p.goal=null;p.path=[{x:deskX('reception',st.j),y:FRONTY}];
+  p.state='checkin';p.room=r;p.rc=S.roomCls[r]||0;p.goal=null;p.path=[{x:deskX('reception',st.j),y:WALKY},{x:deskX('reception',st.j),y:FRONTY}];
   const t=stTime('reception');st.job={pid:p.id,left:t,total:t};
   return 'ok';
 }
@@ -329,7 +329,7 @@ function startCheckout(want){
   const q=outLine();if(!q.length)return 'empty';
   const p=want&&q.includes(want)?want:q[0];
   const x=deskX('checkout',st.j);
-  p.state='checkout';p.goal=null;p.path=[{x:p.x,y:WALKY},{x,y:WALKY},{x,y:FRONTY}];
+  p.state='checkout';p.goal=null;p.path=[{x,y:WALKY},{x,y:FRONTY}];
   const t=stTime('checkout');st.job={pid:p.id,left:t,total:t};
   return 'ok';
 }
@@ -390,7 +390,7 @@ function tick(dt){
     S.nextArrival=arrivalInterval()*rnd(0.7,1.3);
     if(inQueue().length<QUEUE_MAX){
       const type=S.dogs&&Math.random()<0.45?'dog':'cat';
-      S.pets.push({id:S.seq++,type,state:'queue',x:-20,y:QY,path:[],pat:PATIENCE,mood:100,room:null,need:null,needT:0,stay:0,rc:0,helper:null});
+      S.pets.push({id:S.seq++,type,state:'queue',x:-20,y:WALKY,path:[],pat:PATIENCE,mood:100,room:null,need:null,needT:0,stay:0,rc:0,helper:null});
     } else S.lost++;
   }
   inQueue().forEach((p,i)=>goDirect(p,queueSpot(i)));
@@ -406,7 +406,7 @@ function tick(dt){
       if(j.left<=0){
         s.job=null;p.goal=null;
         if(k==='reception'){p.state='toRoom';p.path=fromB(brDesk('reception',s.j)).concat(toRoom(p.room,'pet'))}
-        else{pay(p);p.state='leaving';p.path=[{x:p.x,y:WALKY},{x:390,y:WALKY}]}
+        else{pay(p);p.state='leaving';p.path=[{x:p.x,y:WALKY},{x:SW+30,y:WALKY}]} // уходит по дорожке направо
       }
     }
   }
@@ -451,7 +451,7 @@ function tick(dt){
     stepTo(p,dt,p.state==='walkout'?staffSpeed('walk'):PET_SPEED);
     if(p.state==='queue'){
       p.pat-=dt;
-      if(p.pat<=0){p.state='leaving';p.goal=null;p.path=[{x:-30,y:QY}];S.lost++;toastOnce('left','😤 Гость не дождался и ушёл. Регистрируйте быстрее!')}
+      if(p.pat<=0){p.state='leaving';p.goal=null;p.path=[{x:-30,y:WALKY}];S.lost++;toastOnce('left','😤 Гость не дождался и ушёл. Регистрируйте быстрее!')}
     } else if(p.state==='toRoom'){
       if(arrived(p)){p.state='room';p.stay=PET[p.type].stay;p.needT=rnd(...PET[p.type].every)*0.5} // проживание — с момента, как дошёл до номера
     } else if(p.state==='room'&&arrived(p)){
@@ -549,16 +549,14 @@ function pathsSVG(){
   const seg=[];
   seg.push(`M${SPX} ${HY} L${SPX} ${WALKY}`);
   seg.push(`M150 ${DOORY} L${S.dogs?210:SPX} ${DOORY}`);
-  seg.push(`M28 ${WALKY} L340 ${WALKY}`);
+  seg.push(`M-10 ${WALKY} L${SW+10} ${WALKY}`);
   for(let j=0;j<S.st.reception.slots;j++)seg.push(`M${deskX('reception',j)} ${FRONTY} L${deskX('reception',j)} ${WALKY}`);
   for(let j=0;j<S.st.checkout.slots;j++)seg.push(`M${deskX('checkout',j)} ${FRONTY} L${deskX('checkout',j)} ${WALKY}`);
   const d=seg.join(' ');
   return `<svg class="paths" viewBox="0 0 ${SW} ${SH}" width="${SW}" height="${SH}">
     <path d="${d}" stroke="#ecdcc4" stroke-width="13" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="${d}" stroke="#cfae84" stroke-width="2" stroke-dasharray="5 6" fill="none" stroke-linecap="round"/>
-    <path d="M-10 ${QY} L162 ${QY}" stroke="#e7d3b6" stroke-width="22" stroke-linecap="round"/>
     <ellipse cx="${HX}" cy="${HY+2}" rx="21" ry="9" fill="#5b4033"/><ellipse cx="${HX}" cy="${HY+4}" rx="15" ry="5.5" fill="#2e211b"/>
-    <path d="M202 ${QY} L350 ${QY}" stroke="#d9eadf" stroke-width="22" stroke-linecap="round"/>
   </svg>`;
 }
 function stationLabel(k){
@@ -594,7 +592,7 @@ function renderPlan(){
       <div class="counter" style="top:${DESKY-LOBY}px"></div><div class="zh">${stationLabel(k)}</div>
       ${noroom?'<span class="zq bad">нет свободных номеров!</span>':''}</div>`;
   }
-  h+=`<div class="sign" style="left:${HX+26}px;top:${HY-6}px">лаз в номера</div><div class="sign" style="left:2px;top:${QY+14}px">← вход</div><div class="sign" style="right:2px;top:${WALKY+8}px">выход →</div>`;
+  h+=`<div class="sign" style="left:${HX+26}px;top:${HY-6}px">лаз в номера</div><div class="sign" style="left:4px;top:${WALKY+12}px">← вход · очередь</div><div class="sign" style="right:4px;top:${WALKY+12}px">на выписку · выход →</div>`;
   $('plan').innerHTML=h;
   const sc=$('sceneWrap').clientWidth/SW;
   $('scene').style.transform=`scale(${sc})`;$('sceneWrap').style.height=(SH*sc)+'px';
