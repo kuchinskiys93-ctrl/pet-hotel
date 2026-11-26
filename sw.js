@@ -1,7 +1,7 @@
 // Офлайн-режим: игра открывается без интернета.
 // Отдаём файлы из кэша сразу, а в фоне подтягиваем свежую версию —
 // обновление игры появится при следующем запуске.
-const CACHE = 'pethotel-v1';
+const CACHE = 'pethotel-v2';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg', 'icon-32.png', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
