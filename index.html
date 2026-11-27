@@ -237,9 +237,9 @@ img.pv.photo{border-radius:50%;box-shadow:0 0 0 .05em #fff,0 .04em .1em #0004;ob
 .bigbtn{max-width:456px;width:100%;background:var(--ink);color:#fff;border:none;border-radius:16px;padding:14px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit}
 .bigbtn.green{background:var(--accent2)}.bigbtn.ghost{background:#e9ddd0;color:var(--ink)}
 .bigbtn:disabled{background:#cbbfb4}
-#back{position:fixed;inset:0;background:#0006;z-index:20;display:none}
+#back{position:fixed;inset:0;background:#0006;z-index:20;display:none;touch-action:none}
 #sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;display:none;justify-content:center}
-#sheet .in{background:var(--bg);width:100%;max-width:480px;border-radius:22px 22px 0 0;padding:16px 14px calc(18px + env(safe-area-inset-bottom));max-height:86vh;overflow:auto}
+#sheet .in{background:var(--bg);width:100%;max-width:480px;border-radius:22px 22px 0 0;padding:16px 14px calc(18px + env(safe-area-inset-bottom));max-height:86vh;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .sh-title{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:800;margin-bottom:4px}
 .sh-sub{color:var(--muted);font-size:13px;margin-bottom:10px}
 .sh-h{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:16px 2px 2px;font-weight:700}
@@ -480,7 +480,7 @@ function limoSvg(){ // белый лимузин с золотом — маши�
 }
 
 // ---------- Данные ----------
-const VERSION='2.7.4';
+const VERSION='2.7.5';
 const SAVE_KEY='pethotel_v4'; // 2.1 — несколько отелей; сохранение 2.0 (pethotel_v3) переносится и не удаляется
 const OLD_KEY='pethotel_v3';
 const PET={
@@ -1103,8 +1103,14 @@ function renderSheet(){
   const box=$('sheetIn'),st=box.scrollTop; // прокрутка окна не должна сбрасываться при обновлении
   morph(box,h);if(box.scrollTop!==st)box.scrollTop=st;
 }
-function openSheet(s){sheet=s;$('sheetIn').innerHTML='';$('back').style.display='block';$('sheet').style.display='flex';renderSheet()}
-function closeSheet(){sheet=null;$('back').style.display='none';$('sheet').style.display='none'}
+// Пока открыто окно, основной экран «замораживаем», чтобы он не двигался под пальцем
+// (без position:fixed — иначе закреплённая шапка прыгает)
+function lockScroll(){document.documentElement.style.overflow='hidden';document.body.style.overflow='hidden'}
+function unlockScroll(){document.documentElement.style.overflow='';document.body.style.overflow=''}
+function openSheet(s){sheet=s;$('sheetIn').innerHTML='';$('back').style.display='block';$('sheet').style.display='flex';lockScroll();renderSheet()}
+function closeSheet(){sheet=null;$('back').style.display='none';$('sheet').style.display='none';unlockScroll()}
+// жест по затемнению или по краю окна не должен прокручивать страницу
+document.addEventListener('touchmove',e=>{if(!sheet)return;const box=$('sheetIn');if(!box.contains(e.target)||box.scrollHeight<=box.clientHeight)e.preventDefault()},{passive:false});
 
 // ---------- Эффекты ----------
 function floatAt(id,text,color,dy){
