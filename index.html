@@ -480,7 +480,7 @@ function limoSvg(){ // белый лимузин с золотом — маши�
 }
 
 // ---------- Данные ----------
-const VERSION='2.7.5';
+const VERSION='2.8';
 const SAVE_KEY='pethotel_v4'; // 2.1 — несколько отелей; сохранение 2.0 (pethotel_v3) переносится и не удаляется
 const OLD_KEY='pethotel_v3';
 const PET={
@@ -504,11 +504,11 @@ const PET={
 const KINDS={
   cats:{name:'Хвостатый отель',icon:'🐈',pets:['cat','dog'],mult:1,fun:['walk','play'],
     svc:{
-      food:{icon:'🍖',name:'Покормить',short:'Покормить',time:4,fx:['🍖','😋','🍖']},
-      wash:{icon:'🛁',name:'Помыть',short:'Помыть',time:6,fx:['🫧','🫧','🫧'],eq:'bath'},
-      groom:{icon:'✂️',name:'Подстричь',short:'Подстричь',by:{cat:'Подстричь когти'},time:6,fx:['✂️','✨','✂️'],eq:'groom'},
-      walk:{icon:'🌳',name:'Выгулять',short:'Выгулять',time:8,fx:['🌳','🐾','🐾'],eq:'yard'},
-      play:{icon:'🧸',name:'Поиграть',short:'Поиграть',time:5,fx:['🧸','💕','🎾'],eq:'toys'},
+      food:{icon:'🍖',name:'Покормить',short:'Покормить',time:12,fx:['🍖','😋','🍖']},
+      wash:{icon:'🛁',name:'Помыть',short:'Помыть',time:18,fx:['🫧','🫧','🫧'],eq:'bath'},
+      groom:{icon:'✂️',name:'Подстричь',short:'Подстричь',by:{cat:'Подстричь когти'},time:18,fx:['✂️','✨','✂️'],eq:'groom'},
+      walk:{icon:'🌳',name:'Выгулять',short:'Выгулять',time:24,fx:['🌳','🐾','🐾'],eq:'yard'},
+      play:{icon:'🧸',name:'Поиграть',short:'Поиграть',time:15,fx:['🧸','💕','🎾'],eq:'toys'},
     },
     need:{
       wash:{cat:'Шёрстка запылилась',dog:'Шерсть в грязи после дороги'},
@@ -527,11 +527,11 @@ const KINDS={
     manager:5000},
   rodents:{name:'Пушистый дворик',icon:'🐹',phone:'☎️',car:limoSvg(),pets:['rabbit','hamster','parrot'],mult:1.5,fun:['wheel','talk'],
     svc:{
-      food:{icon:'🥕',name:'Покормить',short:'Покормить',time:4,fx:['🥕','😋','🌾']},
-      clean:{icon:'🧹',name:'Почистить клетку',short:'Почистить',time:6,fx:['🧹','✨','🧹'],eq:'cage'},
-      brush:{icon:'🖌️',name:'Расчесать',short:'Расчесать',time:5,fx:['✨','💕','✨'],eq:'brush'},
-      wheel:{icon:'🎡',name:'Побегать',short:'Побегать',time:7,fx:['💨','🐾','💨'],eq:'wheel'},
-      talk:{icon:'💬',name:'Поговорить',short:'Поговорить',time:5,fx:['💬','🎶','💬'],eq:'perch'},
+      food:{icon:'🥕',name:'Покормить',short:'Покормить',time:12,fx:['🥕','😋','🌾']},
+      clean:{icon:'🧹',name:'Почистить клетку',short:'Почистить',time:18,fx:['🧹','✨','🧹'],eq:'cage'},
+      brush:{icon:'🖌️',name:'Расчесать',short:'Расчесать',time:15,fx:['✨','💕','✨'],eq:'brush'},
+      wheel:{icon:'🎡',name:'Побегать',short:'Побегать',time:21,fx:['💨','🐾','💨'],eq:'wheel'},
+      talk:{icon:'💬',name:'Поговорить',short:'Поговорить',time:15,fx:['💬','🎶','💬'],eq:'perch'},
     },
     need:{
       clean:{rabbit:'Подстилка испачкалась',hamster:'В клетке беспорядок',parrot:'Клетка в шелухе'},
@@ -571,11 +571,13 @@ const stayMult=i=>Math.pow(ROOM_SPEED,roomLvl(i)-1);
 const roomUpCost=i=>Math.round(ROOM_UP_COST[roomLvl(i)+1]*(K.mult||1));
 // Что нужно, чтобы открыть уровень номера (чтобы гостей успевали обслужить за более короткое проживание):
 // Комфорт — всё оборудование и все помощники ур. 2; Люкс — все помощники ур. 3 и администратор на ресепшене ур. 3
+const ROOM_SPEED_REQ=[0,0,2,3]; // какая скорость процедур нужна для Комфорта и Люкса (процедуры идут по очереди и длятся дольше)
 function roomReqMissing(lvl){
   const m=[];if(lvl<2)return m;
   const need=lvl===2?2:3;
   if(lvl===2)for(const [k,e] of Object.entries(EQ))if(!S.eq[k])m.push(e.icon+' '+e.name.toLowerCase());
   for(const k of Object.keys(SVC))if((S.help[k]||0)<need)m.push(`🧑 «${SVC[k].name.toLowerCase()}» ур. ${need}`);
+  const sp=ROOM_SPEED_REQ[lvl];for(const k of Object.keys(SVC))if((S.lvl[k]||0)<sp)m.push(`⚡ скорость «${SVC[k].name.toLowerCase()}» ур. ${sp}`);
   if(lvl===3&&(S.staff.desk||0)<3)m.push('🛎️ ресепшен ур. 3');
   return m;
 } const MAX_ROOMS=8, MAX_LVL=10;
@@ -625,7 +627,9 @@ function fmt(n){n=Math.floor(n);if(n<1000)return ''+n;const u=['K','M','B'];let 
 const years=a=>a===1?'год':a<5?'года':'лет';
 const rating=()=>S.reviews.reduce((a,b)=>a+b,0)/S.reviews.length;
 const pet=id=>S.pets.find(p=>p.id===id);
-const svcTime=k=>SVC[k].time*Math.pow(0.85,S.lvl[k]);
+// Скорость: каждый уровень −5% от базового времени, на ур. 10 — ровно вдвое быстрее
+const SPEED_STEP=0.05;
+const svcTime=(k,l=S.lvl[k])=>SVC[k].time*(1-SPEED_STEP*l);
 const lvlCost=k=>Math.round(25*Math.pow(1.8,S.lvl[k]));
 const tarOpen=k=>TAR[k].eq.every(e=>S.eq[e]);
 const svcOpen=k=>!SVC[k].eq||S.eq[SVC[k].eq];
@@ -714,8 +718,7 @@ const HELP_MAX=5, helpCost=k=>Math.round(HELP[k]*Math.pow(1.6,S.help[k]||0));
 const activeReq=(p,svc)=>p.reqs.find(r=>!r.done&&!r.miss&&(!svc||r.svc===svc));
 function doService(id,svc,byHelper){
   const p=pet(id);if(!p||p.state!=='room')return;
-  if(p.acts.some(a=>a.svc===svc))return;
-  if(!byHelper&&p.acts.some(a=>!a.help)){floatAt('room-'+p.room,'Вы уже заняты с ним 🙂','#8a7a70');return}
+  if(p.acts.length){if(!byHelper)floatAt('room-'+p.room,'Сначала закончим эту процедуру 🙂','#8a7a70');return} // с гостем — одна процедура за раз
   if(byHelper&&helperBusy(svc))return;
   if(!byHelper&&S.help[svc]&&!helperBusy(svc)){floatAt('room-'+p.room,'Это сделает помощник 🧑','#8a7a70');return}
   const r=activeReq(p,svc);
@@ -864,7 +867,7 @@ function roomHTML(i){
   const fxs=a0?SVC[a0.svc].fx.map(e=>`<span>${e}</span>`).join(''):'';
   const btns=kinds.map(k=>{
     const all=p.reqs.filter(r=>r.svc===k),done=all.filter(r=>r.done).length;
-    const req=activeReq(p,k),act=p.acts.find(a=>a.svc===k),doing=!!act,meBusy=p.acts.some(a=>!a.help);
+    const req=activeReq(p,k),act=p.acts.find(a=>a.svc===k),doing=!!act,meBusy=p.acts.length>0;
     const cd=!doing&&req&&onCd(p,k);
     const helperFree=S.help[k]&&!helperBusy(k); // свободный помощник сделает сам — вам эта кнопка не нужна
     const cls=doing?'doing':done===all.length?'done':cd?'cd':meBusy||helperFree?'':'can'; // можно делать прямо сейчас — яркая кнопка
@@ -1012,7 +1015,7 @@ function shopSheet(){
         return `<div class="scard"><div class="sh"><span class="ic">${sv.icon}</span>${sv.name}</div><div class="lock">🔒 Нужно оборудование: ${e.icon} ${e.name} — ${e.desc.toLowerCase()}</div>${up(e.icon+' '+e.name,0,1,e.cost,'eq',sv.eq,'','Купить')}</div>`}
       const l=S.lvl[k],h=S.help[k]||0;
       return `<div class="scard"><div class="sh"><span class="ic">${sv.icon}</span>${sv.name}<span class="tag">💰 ${Math.round(svcPrice(k))} · ${pct(priceMult(k))}</span></div>
-        ${up('⚡ Скорость',l,MAX_LVL,lvlCost(k),'lvl',k,l>=MAX_LVL?`${svcTime(k).toFixed(1)} с`:`${svcTime(k).toFixed(1)} с → ${(svcTime(k)*0.85).toFixed(1)} с · цена +${PRICE_PER_LVL*100}%`)}
+        ${up('⚡ Скорость',l,MAX_LVL,lvlCost(k),'lvl',k,l>=MAX_LVL?`${svcTime(k).toFixed(1)} с`:`${svcTime(k).toFixed(1)} с → ${svcTime(k,l+1).toFixed(1)} с · цена +${PRICE_PER_LVL*100}%`)}
         ${up('🧑 Помощник',h,HELP_MAX,helpCost(k),'help',k,h>=HELP_MAX?`Ведёт ${h} гостей одновременно`:h?`Гостей одновременно: ${h} → ${h+1} · цена +${PRICE_PER_HELP*100}%`:`Сам делает «${sv.name.toLowerCase()}». Цена +${PRICE_PER_HELP*100}%`,'Нанять')}
       </div>`;
     }).join('');
@@ -1029,7 +1032,7 @@ function shopSheet(){
     body=`<div class="scard"><div class="sh"><span class="ic">🏨</span>Номера</div>${up('Номеров',S.rooms,MAX_ROOMS,ROOM_COST[S.rooms]||0,'room',null,'Можно принять больше гостей','Купить')}</div>
       <div class="scard"><div class="sh"><span class="ic">✨</span>Уровень номеров</div>
         ${(()=>{const n2=roomReqMissing(2),n3=roomReqMissing(3);
-          return `<small class="lock" style="display:block;margin-top:4px">Комфорт ★ — все помощники ур. 2${n2.length?' 🔒':' ✅'} · Люкс ★★ — помощники и ресепшен ур. 3${n3.length?' 🔒':' ✅'}</small>`})()}
+          return `<small class="lock" style="display:block;margin-top:4px">Комфорт ★ — помощники и скорость всех процедур ур. 2${n2.length?' 🔒':' ✅'} · Люкс ★★ — помощники, скорость и ресепшен ур. 3${n3.length?' 🔒':' ✅'}</small>`})()}
         ${[...Array(S.rooms)].map((_,i)=>{const l=roomLvl(i),miss=l<ROOM_LVL_MAX?roomReqMissing(l+1):[];
           if(miss.length)return `<div class="up"><div class="ul"><b>Номер ${i+1} · ${ROOM_NAMES[l]} <em>ур. ${l}/${ROOM_LVL_MAX}</em></b>${pips(l,ROOM_LVL_MAX)}<small>Для «${ROOM_NAMES[l+1]}» нужно: ${miss.join(', ')}</small></div><button class="ubtn" disabled><b>🔒 ${ROOM_NAMES[l+1]}</b><span>${fmt(roomUpCost(i))} 💰</span></button></div>`;
           return up(`Номер ${i+1} · ${ROOM_NAMES[l]}`,l,ROOM_LVL_MAX,l<ROOM_LVL_MAX?roomUpCost(i):0,'roomup',i,l<ROOM_LVL_MAX?`${ROOM_NAMES[l+1]}: проживание −20%, гости уезжают быстрее`:`Проживание −${Math.round((1-stayMult(i))*100)}%`)}).join('')}</div>
