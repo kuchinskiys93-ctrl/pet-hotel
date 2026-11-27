@@ -178,6 +178,48 @@ img.pv.photo{border-radius:50%;box-shadow:0 0 0 .05em #fff,0 .04em .1em #0004;ob
 .prest .need{color:var(--muted)}
 .prest .ok{color:var(--accent2)}
 .prest button{margin-top:8px;width:100%}
+/* ---- Уровни номеров: Стандарт — белый · Комфорт — золотой · Люкс — бордо с золотом ---- */
+.rhead .lvn{font-weight:900;margin-left:3px}
+.rcard.lv1 .rhead .lvn{color:#9a8a7e}
+.rcard.lv2{background:linear-gradient(160deg,#fff8d9,#ffe08a)}
+.rcard.lv2:not(.pickup){box-shadow:inset 0 0 0 2px #d4a017,0 3px 0 #e6c45a}
+.rcard.lv2 .rhead .lvn{color:#a87b05}
+.rcard.free.lv2{background:repeating-linear-gradient(135deg,#fff6d1 0 12px,#ffe9a6 12px 24px)}
+.rcard.lv2 .petbox::before{content:'';position:absolute;left:1px;right:1px;bottom:12px;height:30px;border-radius:15px;background:#fffaf0;box-shadow:inset 0 0 0 1.5px #ecd28a,0 1px 0 #e0c071}
+.rcard.lv2 .petbox .bed{left:-3px;right:-3px;bottom:0;height:21px;border-radius:50%/60%;background:linear-gradient(#ffe9a3,#e8b93a);box-shadow:inset 0 4px 0 #fff8,0 2px 0 #c9971e}
+.rcard.lv3{background:linear-gradient(160deg,#7a1f3d,#561228);color:#fdeef2}
+.rcard.lv3:not(.pickup){box-shadow:inset 0 0 0 2px #e2b84a,inset 0 0 0 3.5px #8f3352,0 3px 0 #3d0c1c}
+.rcard.lv3 .rhead,.rcard.lv3 .rinfo .nm,.rcard.lv3 .lbl,.rcard.lv3 .rinfo{color:#fdeef2}
+.rcard.lv3 .rhead .lvn{color:#f0c443}
+.rcard.lv3 .rinfo .bar{background:#ffffff26}
+.rcard.lv3 .svc:not(.can):not(.doing){background:#ffffff1f;color:#fff}
+.rcard.lv3 .svc .cnt{color:#fdeef2}
+.rcard.free.lv3{background:repeating-linear-gradient(135deg,#6e1c37 0 12px,#5c1630 12px 24px);color:#fdeef2}
+.rcard.lv3 .petbox::before{content:none}
+/* Готовые процедуры: не бледные, а на светлой плашке с зелёной галочкой */
+.svc.done{opacity:1}
+.svc.done .cnt{display:none}
+.svc.done::after{content:'✓';position:absolute;right:2px;bottom:2px;width:14px;height:14px;border-radius:50%;background:#3fae7a;color:#fff;font-size:10px;font-weight:900;line-height:14px;text-align:center}
+.rcard.lv2 .svc.done{background:#ffffff59}
+.rcard.lv3 .svc.done{background:#ffffff38}
+/* Детали на фоне номеров: узор «обоев» и предмет интерьера в углу */
+.rcard.lv1:not(.free){background-image:radial-gradient(#ecdfcf 1.1px,transparent 1.5px);background-size:12px 12px}
+.rcard.lv2:not(.free){background:radial-gradient(circle,#ffffffa6 1.3px,transparent 1.8px) 0 0/14px 14px,linear-gradient(160deg,#fff8d9,#ffe08a)}
+.rcard.lv3:not(.free){background:radial-gradient(circle,#e2b84a40 1.6px,transparent 2.1px) 0 0/16px 16px,radial-gradient(circle,#e2b84a26 1.2px,transparent 1.7px) 8px 8px/16px 16px,linear-gradient(160deg,#7a1f3d,#561228)}
+.rcard.lv1::before,.rcard.lv2::before,.rcard.lv3::before{position:absolute;top:3px;right:6px;font-size:16px;line-height:1;pointer-events:none}
+.rcard.lv1::before{content:'🪴';opacity:.55}
+.rcard.lv2::before{content:'🖼️';opacity:.8}
+.rcard.lv3::before{content:'👑';opacity:.9;filter:drop-shadow(0 0 3px #f0c44399)}
+.rcard.lv1::after,.rcard.lv2::after,.rcard.lv3::after{position:absolute;bottom:6px;right:8px;font-size:17px;line-height:1;pointer-events:none}
+.rcard.lv1::after{content:'🧶';opacity:.45}
+.rcard.lv2::after{content:'🛋️';opacity:.7}
+.rcard.lv3::after{content:'🕯️';opacity:.9;filter:drop-shadow(0 0 4px #ffcf6b)}
+.rcard.add::before{content:none}
+/* Люкс: квадратная бордовая подушка с золотым кантом и кисточками на уголках */
+.rcard.lv3 .petbox .bed{left:4px;right:4px;bottom:3px;height:30px;border-radius:7px;background:linear-gradient(150deg,#b9466b,#7d1f40);box-shadow:inset 0 0 0 1.5px #e2b84a,inset 0 3px 0 #ffffff30,0 2px 0 #3d0c1c}
+.rcard.lv3 .petbox::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:38px;pointer-events:none;z-index:2;
+  background:radial-gradient(circle at 4px 4px,#f0c443 2.6px,#c99a26 3px,transparent 3.4px),radial-gradient(circle at calc(100% - 4px) 4px,#f0c443 2.6px,#c99a26 3px,transparent 3.4px),
+  radial-gradient(circle at 4px calc(100% - 4px),#f0c443 2.6px,#c99a26 3px,transparent 3.4px),radial-gradient(circle at calc(100% - 4px) calc(100% - 4px),#f0c443 2.6px,#c99a26 3px,transparent 3.4px)}
 .a-food .pet{animation:chomp .35s infinite}
 @keyframes chomp{50%{transform:translateY(4px) scale(1.04,.94)}}
 .a-wash .pet{animation:wiggle .4s infinite}
@@ -302,29 +344,13 @@ body.k-rodents .stabs{background:#e6dcf7}
 .guest .bar{height:4px;margin-top:4px}
 .lobby .empty-note{flex:1}
 /* ---- Уровни номеров: Стандарт / Комфорт / Люкс ---- */
-.rhead .rst{font-style:normal;color:#e0a100;font-size:10px;margin-left:2px;letter-spacing:-1px}
-.rcard.lv2{background:linear-gradient(160deg,#fff3e2,#ffe2c4)}
-.rcard.lv2:not(.pickup){box-shadow:inset 0 0 0 2px #f4c995,0 3px 0 #ecc69b}
-.rcard.lv2 .rhead .rst{color:#e08a1e}
-.rcard.lv3{background:linear-gradient(160deg,#f4ecff,#e3d4fb)}
-.rcard.lv3:not(.pickup){box-shadow:inset 0 0 0 2px #e2b84a,inset 0 0 0 3.5px #f7e3a3,0 3px 0 #cbb6ee} /* золотая окантовка */
-.rcard.lv3 .rhead .rst{color:#9b6fe0}
-.rcard.free.lv2{background:repeating-linear-gradient(135deg,#fff0dc 0 12px,#ffe2c2 12px 24px)}
-.rcard.free.lv3{background:repeating-linear-gradient(135deg,#f3ecff 0 12px,#e9dffb 12px 24px)}
 .petbox .pet{font-size:36px;left:9px;bottom:12px;z-index:1}
 .petbox .bowl{z-index:2}
 /* Стандарт: жёсткая подложка-коврик */
 .rcard .petbox .bed{left:0;right:0;bottom:1px;height:15px;border-radius:5px;background:linear-gradient(#e2c6a2,#cfa77a);box-shadow:inset 0 -3px 0 #b88b5a,0 1px 0 #0001}
 /* Комфорт: мягкая пастельная лежанка и подушка за спиной */
-.rcard.lv2 .petbox::before{content:'';position:absolute;left:1px;right:1px;bottom:12px;height:30px;border-radius:15px;background:#fff1e6;box-shadow:inset 0 0 0 1.5px #f3d9c4,0 1px 0 #e9cdb7}
-.rcard.lv2 .petbox .bed{left:-3px;right:-3px;bottom:0;height:21px;border-radius:50%/60%;background:linear-gradient(#ffe8ee,#f5c9d6);box-shadow:inset 0 4px 0 #fffb,0 2px 0 #e3aebe}
 /* Люкс: фиолетовая подушка с золотой окантовкой и кисточками */
-.rcard.lv3 .petbox::before{content:none}
 /* Люкс: квадратная подушка с золотым кантом и кисточками на уголках */
-.rcard.lv3 .petbox .bed{left:4px;right:4px;bottom:3px;height:30px;border-radius:7px;background:linear-gradient(150deg,#e3d0ff,#b994ef);box-shadow:inset 0 0 0 1.5px #e2b84a,inset 0 3px 0 #fff6,0 2px 0 #8f6fd0}
-.rcard.lv3 .petbox::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:38px;pointer-events:none;z-index:2;
-  background:radial-gradient(circle at 4px 4px,#f0c443 2.6px,#c99a26 3px,transparent 3.4px),radial-gradient(circle at calc(100% - 4px) 4px,#f0c443 2.6px,#c99a26 3px,transparent 3.4px),
-  radial-gradient(circle at 4px calc(100% - 4px),#f0c443 2.6px,#c99a26 3px,transparent 3.4px),radial-gradient(circle at calc(100% - 4px) calc(100% - 4px),#f0c443 2.6px,#c99a26 3px,transparent 3.4px)}
 /* ---- Заставка ---- */
 #intro{position:fixed;inset:0;z-index:50;background:radial-gradient(circle at 50% 35%,#ffe3c4,#ffb98a 55%,#f08a5d);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;transition:opacity .5s;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom)}
 #intro.out{opacity:0;pointer-events:none}
@@ -454,7 +480,7 @@ function limoSvg(){ // белый лимузин с золотом — маши�
 }
 
 // ---------- Данные ----------
-const VERSION='2.7';
+const VERSION='2.7.3';
 const SAVE_KEY='pethotel_v4'; // 2.1 — несколько отелей; сохранение 2.0 (pethotel_v3) переносится и не удаляется
 const OLD_KEY='pethotel_v3';
 const PET={
@@ -829,7 +855,7 @@ function guestReadyHTML(p){ // карточка в приёмной: видно,
 }
 function roomHTML(i){
   const p=S.pets.find(x=>x.room===i);
-  const lv=roomLvl(i),num=`Номер ${i+1}${lv>1?`<i class="rst">${'★'.repeat(lv-1)}</i>`:''}`;
+  const lv=roomLvl(i),num=`Номер ${i+1}<span class="lvn">${ROOM_NAMES[lv]}${lv>1?' '+'★'.repeat(lv-1):''}</span>`;
   if(!p)return `<div class="rcard free lv${lv}" id="room-${i}"><div class="rhead"><span>${num}</span></div>
     <div class="rbody"><div class="petbox"><div class="bed"></div><div class="bowl">🥣</div></div><div class="rinfo">свободен</div></div></div>`;
   const T=TAR[p.tariff],kinds=Object.keys(SVC).filter(k=>p.reqs.some(r=>r.svc===k)); // всегда в одном порядке: еда, мытьё, стрижка, прогулка, игра
@@ -846,7 +872,7 @@ function roomHTML(i){
   }).join('');
   const pick=p.state==='pickup'||p.state==='checkout',trans=p.state==='checkin'||p.state==='checkout';
   return `<div class="rcard lv${lv} ${pick?'pickup':''}" id="room-${i}">
-    <div class="rhead"><span>${num}</span><span class="tar" title="${T.name}">${p.reqs.length?[...new Set(p.reqs.map(r=>r.svc))].map(k=>SVC[k].icon).join(''):T.icon}</span></div>
+    <div class="rhead"><span>${num}</span></div>
     <div class="rbody"><div class="petbox ${anim}"><div class="bed"></div><div class="bowl">🥣</div><div class="pet">${face(p)}</div><div class="fx">${fxs}</div></div>
       <div class="rinfo"><div class="nm">${p.name}</div>
         <div class="lbl"><span>😊</span><span data-x="mood:${p.id}"></span></div><div class="bar"><i data-w="mood:${p.id}"></i></div>
