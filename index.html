@@ -152,6 +152,21 @@ h3{margin:14px 2px 6px;font-size:12px;color:var(--muted);text-transform:uppercas
 .pickbtn{height:var(--acts-h,78px);box-sizing:border-box}
 .rooms{grid-auto-rows:1fr}
 .rcard{min-height:192px;box-sizing:border-box}
+.a-clean .pet{animation:wiggle .4s infinite}
+.a-brush .pet{animation:idle .8s infinite}
+.a-wheel .pet{animation:hop .35s infinite}
+.a-talk .pet{animation:chomp .5s infinite}
+/* ---- Отели и престиж ---- */
+.htabs{display:flex;gap:6px;padding-top:calc(8px + env(safe-area-inset-top));align-items:center}
+.htabs button{flex:1;min-width:0;border:none;border-radius:10px;padding:6px 8px;font-family:inherit;font-weight:800;font-size:12px;background:#f3ebe1;color:var(--muted);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.htabs button.on{background:var(--accent);color:#fff}
+.htabs .stars{font-weight:900;font-size:13px;color:#e0a100;white-space:nowrap}
+.htabs+.top{padding-top:6px}
+.prest{background:linear-gradient(135deg,#fff6dc,#ffe9b8);border-radius:14px;padding:10px 12px;margin-top:8px;box-shadow:0 2px 0 #f0d58a}
+.prest b{font-size:15px}.prest small{display:block;color:#8a6a2a;font-size:12px;margin-top:3px;line-height:1.35}
+.prest .need{color:var(--muted)}
+.prest .ok{color:var(--accent2)}
+.prest button{margin-top:8px;width:100%}
 .a-food .pet{animation:chomp .35s infinite}
 @keyframes chomp{50%{transform:translateY(4px) scale(1.04,.94)}}
 .a-wash .pet{animation:wiggle .4s infinite}
@@ -260,9 +275,52 @@ function spitzSvg(){
   </svg>`;
 }
 
+function rabbitSvg(){
+  return `<svg class="pv" viewBox="0 0 64 64">
+    <ellipse cx="22" cy="16" rx="6.5" ry="15" fill="#e4dde8" transform="rotate(-8 22 16)"/><ellipse cx="42" cy="16" rx="6.5" ry="15" fill="#e4dde8" transform="rotate(8 42 16)"/>
+    <ellipse cx="22" cy="17" rx="3.2" ry="10.5" fill="#f5b5c8" transform="rotate(-8 22 17)"/><ellipse cx="42" cy="17" rx="3.2" ry="10.5" fill="#f5b5c8" transform="rotate(8 42 17)"/>
+    <ellipse cx="32" cy="42" rx="21" ry="18" fill="#f6f3f8"/>
+    <circle cx="19" cy="46" r="4" fill="#fbd0dc"/><circle cx="45" cy="46" r="4" fill="#fbd0dc"/>
+    <circle cx="24.5" cy="38" r="3.6" fill="#2a1d24"/><circle cx="39.5" cy="38" r="3.6" fill="#2a1d24"/>
+    <circle cx="25.7" cy="36.8" r="1.2" fill="#fff"/><circle cx="40.7" cy="36.8" r="1.2" fill="#fff"/>
+    <ellipse cx="32" cy="44.5" rx="3" ry="2.2" fill="#f08aa6"/>
+    <path d="M32 46.5 L32 48.5 M28.5 48.5 Q32 51.5 35.5 48.5" stroke="#8e7f88" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+    <rect x="30.2" y="49.6" width="3.6" height="4" rx="1" fill="#fff" stroke="#d7cfd6" stroke-width=".8"/>
+  </svg>`;
+}
+function hamsterSvg(){
+  return `<svg class="pv" viewBox="0 0 64 64">
+    <circle cx="16" cy="21" r="7.5" fill="#d98a35"/><circle cx="48" cy="21" r="7.5" fill="#d98a35"/>
+    <circle cx="16" cy="21" r="4" fill="#f6b6a6"/><circle cx="48" cy="21" r="4" fill="#f6b6a6"/>
+    <ellipse cx="32" cy="39" rx="25" ry="21" fill="#f2a950"/>
+    <ellipse cx="32" cy="47" rx="15" ry="12" fill="#fff1dc"/>
+    <ellipse cx="15.5" cy="44" rx="8" ry="7" fill="#fff1dc"/><ellipse cx="48.5" cy="44" rx="8" ry="7" fill="#fff1dc"/>
+    <circle cx="24" cy="35" r="3.2" fill="#1d1410"/><circle cx="40" cy="35" r="3.2" fill="#1d1410"/>
+    <circle cx="25" cy="34" r="1" fill="#fff"/><circle cx="41" cy="34" r="1" fill="#fff"/>
+    <ellipse cx="32" cy="41" rx="2.6" ry="1.9" fill="#e9798f"/>
+    <path d="M32 43 L32 44.5 M29 44.5 Q32 47 35 44.5" stroke="#8a5a3a" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+    <path d="M8 40 L19 42 M8 45 L19 44 M56 40 L45 42 M56 45 L45 44" stroke="#c9a27a" stroke-width="1" stroke-linecap="round"/>
+  </svg>`;
+}
+function parrotSvg(){
+  return `<svg class="pv" viewBox="0 0 64 64">
+    <path d="M27 13 Q28 3 33 9 Q36 2 39 11 Q42 6 41 15 Z" fill="#f2c230"/>
+    <ellipse cx="16" cy="44" rx="7" ry="14" fill="#2d9a48" transform="rotate(14 16 44)"/><ellipse cx="48" cy="44" rx="7" ry="14" fill="#2d9a48" transform="rotate(-14 48 44)"/>
+    <ellipse cx="32" cy="43" rx="17" ry="18" fill="#3fbf5c"/>
+    <ellipse cx="32" cy="50" rx="10" ry="9" fill="#c9e86a"/>
+    <circle cx="32" cy="27" r="15" fill="#4fd06a"/>
+    <circle cx="22" cy="31" r="4" fill="#f79a3e"/><circle cx="42" cy="31" r="4" fill="#f79a3e"/>
+    <circle cx="25" cy="24" r="4.2" fill="#fff"/><circle cx="39" cy="24" r="4.2" fill="#fff"/>
+    <circle cx="25.5" cy="24.5" r="2.4" fill="#1d1410"/><circle cx="38.5" cy="24.5" r="2.4" fill="#1d1410"/>
+    <path d="M27.5 28 Q32 25 36.5 28 Q36.5 35 32 38 Q27.5 35 27.5 28 Z" fill="#f2a33a"/>
+    <path d="M28.5 33 Q32 35.5 35.5 33 Q34.5 37 32 38 Q29.5 37 28.5 33 Z" fill="#c9771f"/>
+  </svg>`;
+}
+
 // ---------- Данные ----------
-const VERSION='2.0.8';
-const SAVE_KEY='pethotel_v3'; // 2.0 — новая игра; сохранения 1.x не трогаем
+const VERSION='2.1';
+const SAVE_KEY='pethotel_v4'; // 2.1 — несколько отелей; сохранение 2.0 (pethotel_v3) переносится и не удаляется
+const OLD_KEY='pethotel_v3';
 const PET={
   cat:{svg:catSvg(),kind:'кот',whose:'кота',names:['Мурзик','Уголёк','Ночка','Багира','Тень','Маркиз','Луна','Пантера','Сажа','Черныш'],
     likes:['любит рыбку','спит на подоконнике','боится пылесоса','обожает коробки','мурлычет как трактор'],
@@ -270,34 +328,74 @@ const PET={
   dog:{svg:spitzSvg(),kind:'шпиц',whose:'шпица',names:['Бублик','Пончик','Рыжик','Персик','Тедди','Мишка','Лиса','Пушок','Кекс','Сёмка'],
     likes:['любит мячики','обожает гулять','немного трусишка','любит, когда чешут пузико','громко радуется гостям'],
     react:{play:['Принёс мячик! 🎾','Носится кругами 🌀','Виляет хвостом без остановки 🐾'],check:['Здоров! Нос холодный 👃','Зубки в порядке 🦷','Лапки чистые 🐾'],pet:['Перевернулся на спинку 💕','Лизнул руку 😊','Улыбается во весь рот 😄']}},
+  rabbit:{svg:rabbitSvg(),kind:'кролик',whose:'кролика',names:['Снежок','Зефир','Банни','Ушастик','Пломбир','Кнопа','Облачко','Маршмеллоу'],
+    likes:['обожает морковку','любит прятаться в домике','смешно шевелит носом','любит сено','боится громких звуков'],
+    react:{play:['Делает «бинки» — прыжок от радости! ✨','Гоняет мячик носом 🌀','Подкидывает игрушку 🥕'],check:['Здоров! Зубки ровные 🦷','Ушки чистые 👂','Шёрстка мягкая ✨'],pet:['Жмурится от удовольствия 😌','Прижал ушки — доволен 💕','Лизнул руку 🥰']}},
+  hamster:{svg:hamsterSvg(),kind:'хомяк',whose:'хомяка',names:['Хома','Пухляш','Семечка','Бусинка','Тоша','Орешек','Кексик','Пирожок'],
+    likes:['прячет еду за щёки','любит бегать ночью','обожает семечки','спит до обеда','любит строить гнёзда'],
+    react:{play:['Крутит шарик лапками 🌀','Набил щёки и доволен 😋','Бегает по рукам 🐾'],check:['Здоров! Щёчки в порядке 😊','Зубки ровные 🦷','Глазки блестят ✨'],pet:['Замер и млеет 😌','Умывается от радости 💕','Пищит довольно 🥰']}},
+  parrot:{svg:parrotSvg(),kind:'попугай',whose:'попугая',names:['Кеша','Гоша','Рио','Киви','Чика','Кокос','Лимон','Пиастр'],
+    likes:['знает три слова','любит петь по утрам','обожает орешки','передразнивает телефон','любит зеркальце'],
+    react:{play:['Сказал «Привет!» 🗣️','Танцует на жёрдочке 🎶','Звенит колокольчиком 🔔'],check:['Здоров! Пёрышки блестят ✨','Клюв в порядке 👌','Лапки цепкие 🐾'],pet:['Подставил головку 💕','Распушил пёрышки 🥰','Тихонько воркует 🎶']}},
 };
-const SVC={
-  food:{icon:'🍖',name:'Покормить',short:'Покормить',time:4,fx:['🍖','😋','🍖']},
-  wash:{icon:'🛁',name:'Помыть',short:'Помыть',time:6,fx:['🫧','🫧','🫧'],eq:'bath'},
-  groom:{icon:'✂️',name:'Подстричь',short:'Подстричь',catShort:'Подстричь когти',time:6,fx:['✂️','✨','✂️'],eq:'groom'},
-  walk:{icon:'🌳',name:'Выгулять',short:'Выгулять',time:8,fx:['🌳','🐾','🐾'],eq:'yard'},
-  play:{icon:'🧸',name:'Поиграть',short:'Поиграть',time:5,fx:['🧸','💕','🎾'],eq:'toys'},
+// ---------- Виды отелей: свои звери, процедуры и оборудование ----------
+const KINDS={
+  cats:{name:'Хвостатый отель',icon:'🐈',pets:['cat','dog'],mult:1,fun:['walk','play'],
+    svc:{
+      food:{icon:'🍖',name:'Покормить',short:'Покормить',time:4,fx:['🍖','😋','🍖']},
+      wash:{icon:'🛁',name:'Помыть',short:'Помыть',time:6,fx:['🫧','🫧','🫧'],eq:'bath'},
+      groom:{icon:'✂️',name:'Подстричь',short:'Подстричь',by:{cat:'Подстричь когти'},time:6,fx:['✂️','✨','✂️'],eq:'groom'},
+      walk:{icon:'🌳',name:'Выгулять',short:'Выгулять',time:8,fx:['🌳','🐾','🐾'],eq:'yard'},
+      play:{icon:'🧸',name:'Поиграть',short:'Поиграть',time:5,fx:['🧸','💕','🎾'],eq:'toys'},
+    },
+    need:{
+      wash:{cat:'Шёрстка запылилась',dog:'Шерсть в грязи после дороги'},
+      groom:{cat:'Длинные когти',dog:'Шерсть отросла, лезет в глаза'},
+      walk:{dog:'Засиделся, нужно побегать'},
+      play:{cat:'Скучает, хочет поиграть',dog:'Хочет поиграть с игрушками'},
+    },
+    price:{food:10,wash:12,groom:13,walk:18,play:17},
+    eq:{
+      bath:{name:'Ванночка',icon:'🛁',cost:120,desc:'Можно мыть гостей'},
+      groom:{name:'Машинка и гравер',icon:'✂️',cost:150,desc:'Стрижка шпицев и когтики кошкам'},
+      yard:{name:'Дворик',icon:'🌳',cost:300,desc:'Прогулки на свежем воздухе'},
+      toys:{name:'Игрушки',icon:'🧸',cost:250,desc:'Мячики, бантики и пищалки'},
+    },
+    help:{food:300,wash:500,groom:500,walk:700,play:600},
+    manager:5000},
+  rodents:{name:'Пушистый дворик',icon:'🐹',pets:['rabbit','hamster','parrot'],mult:1.5,fun:['wheel','talk'],
+    svc:{
+      food:{icon:'🥕',name:'Покормить',short:'Покормить',time:4,fx:['🥕','😋','🌾']},
+      clean:{icon:'🧹',name:'Почистить клетку',short:'Почистить',time:6,fx:['🧹','✨','🧹'],eq:'cage'},
+      brush:{icon:'🖌️',name:'Расчесать',short:'Расчесать',time:5,fx:['✨','💕','✨'],eq:'brush'},
+      wheel:{icon:'🎡',name:'Побегать',short:'Побегать',time:7,fx:['💨','🐾','💨'],eq:'wheel'},
+      talk:{icon:'💬',name:'Поговорить',short:'Поговорить',time:5,fx:['💬','🎶','💬'],eq:'perch'},
+    },
+    need:{
+      clean:{rabbit:'Подстилка испачкалась',hamster:'В клетке беспорядок',parrot:'Клетка в шелухе'},
+      brush:{rabbit:'Шерсть спуталась'},
+      wheel:{rabbit:'Засиделся, хочет побегать',hamster:'Хочет покрутить колесо'},
+      talk:{parrot:'Скучает, хочет поболтать'},
+    },
+    price:{food:15,clean:18,brush:20,wheel:27,talk:26},
+    eq:{
+      cage:{name:'Набор для уборки',icon:'🧹',cost:180,desc:'Чистые клетки и свежая подстилка'},
+      brush:{name:'Щётки',icon:'🖌️',cost:220,desc:'Расчёсывать пушистых кроликов'},
+      wheel:{name:'Колесо и вольер',icon:'🎡',cost:450,desc:'Где побегать хомякам и кроликам'},
+      perch:{name:'Жёрдочка и зеркальце',icon:'🪵',cost:380,desc:'Попугаи любят поболтать'},
+    },
+    help:{food:450,clean:750,brush:750,wheel:1050,talk:900},
+    manager:12000},
 };
-// Пожелания гостей: выявляются на осмотре, из них собирается комплекс
-const NEED={
-  wash:{cat:'Шёрстка запылилась',dog:'Шерсть в грязи после дороги'},
-  groom:{cat:'Длинные когти',dog:'Шерсть отросла, лезет в глаза'},
-  walk:{dog:'Засиделся, нужно побегать'},
-  play:{cat:'Скучает, хочет поиграть',dog:'Хочет поиграть с игрушками'},
-};
-const SVC_PRICE={food:10,wash:12,groom:13,walk:18,play:17};
+const KIND_ORDER=['cats','rodents']; // порядок открытия отелей
+const STAR_BONUS=0.1; // +10% к оплате за каждую звезду престижа
+// таблицы текущего отеля (переключаются вместе с отелем)
+let K,SVC,NEED,SVC_PRICE,EQ,HELP;
 const TAR={
   hotel:{name:'Отель',icon:'🛏️',price:20,stay:60,desc:'Мягкая лежанка и еда',eq:[],svc:['food','food']},
   care:{name:'Отель + уход',icon:'🛁',price:45,stay:90,desc:'+ мытьё и стрижка (кошкам — когтики)',eq:['bath','groom'],svc:['food','food','wash','groom']},
   play:{name:'Отель + уход + игра',icon:'🧸',price:80,stay:120,desc:'+ прогулка и игры',eq:['bath','groom','yard','toys'],svc:['food','food','food','wash','groom','walk','play']},
 };
-const EQ={
-  bath:{name:'Ванночка',icon:'🛁',cost:120,desc:'Можно мыть гостей'},
-  groom:{name:'Машинка и гравер',icon:'✂️',cost:150,desc:'Стрижка шпицев и когтики кошкам'},
-  yard:{name:'Дворик',icon:'🌳',cost:300,desc:'Прогулки на свежем воздухе'},
-  toys:{name:'Игрушки',icon:'🧸',cost:250,desc:'Мячики, бантики и пищалки'},
-};
-const HELP={food:300,wash:500,groom:500,walk:700,play:600};
 const STAFF={
   phone:{icon:'☎️',name:'Администратор на телефоне',desc:'Записывает всех звонящих в очередь и сам перезванивает первому, как только освобождается номер',cost:350},
   desk:{icon:'🛎️',name:'Администратор на ресепшене',desc:'Сам знакомится с приехавшими и заселяет по пожеланиям',cost:600},
@@ -305,19 +403,40 @@ const STAFF={
 };
 const ROOM_COST=[0,0,200,450,900,1800,3000,4500]; const MAX_ROOMS=8, MAX_LVL=10;
 
-function fresh(){
-  return {v:3,money:60,reviews:[5,5,4],rooms:2,eq:{bath:false,groom:false,yard:false,toys:false},
-    lvl:{food:0,wash:0,groom:0,walk:0,play:0},help:{food:false,wash:false,groom:false,walk:false,play:false},staff:{phone:false,desk:false,out:false},
-    pets:[],queue:[],seq:1,t:0,call:null,nextCall:3,served:0,declined:0,missed:0,earned:0,tips:{}};
+// Сохранение: G — вся игра (кошелёк, звёзды, отели), S — текущий отель
+function fresh(kind='cats'){
+  const k=KINDS[kind],o=o=>Object.fromEntries(Object.keys(k.svc).map(x=>[x,o]));
+  return attach({kind,reviews:[5,5,4],rooms:2,eq:Object.fromEntries(Object.keys(k.eq).map(x=>[x,false])),
+    lvl:o(0),help:o(0),staff:{phone:false,desk:0,out:false},manager:false,prestiged:false,
+    pets:[],queue:[],seq:1,t:0,call:null,nextCall:3,served:0,declined:0,missed:0,earned:0,tips:{}});
 }
-let S=load()||fresh();
+function freshG(){return {v:4,money:60,stars:0,active:0,hotels:[fresh('cats')]}}
+function attach(H){ // монеты у отелей общие — S.money читает и пишет общий кошелёк
+  Object.defineProperty(H,'money',{get(){return G.money},set(v){G.money=v},enumerable:false,configurable:true});
+  return H;
+}
+function fixHotel(H){ // подтягиваем старые сохранения к нынешнему виду
+  H.kind=H.kind||'cats';
+  if(!H.queue)H.queue=[];
+  for(const k in H.help)if(typeof H.help[k]==='boolean')H.help[k]=H.help[k]?1:0;
+  if(!H.staff)H.staff={phone:false,desk:0,out:false};
+  if(typeof H.staff.desk==='boolean')H.staff.desk=H.staff.desk?1:0;
+  if(H.manager==null)H.manager=false;if(H.prestiged==null)H.prestiged=false;
+  for(const p of H.pets){p.cd=p.cd||{};if(!p.acts)p.acts=p.act?[p.act]:[];delete p.act}
+  return attach(H);
+}
+function useHotel(H){S=H;K=KINDS[H.kind];SVC=K.svc;NEED=K.need;SVC_PRICE=K.price;EQ=K.eq;HELP=K.help}
+let G,S;
+G=load();
+if(!G){ // переносим сохранение 2.0 (один отель) — старый ключ не трогаем, чтобы можно было откатиться
+  let old=null;try{old=JSON.parse(localStorage.getItem(OLD_KEY)||'null')}catch(e){}
+  if(old){const money=old.money;delete old.money;G={v:4,money,stars:0,active:0,hotels:[old]}}
+  else G=freshG();
+}
+G.hotels.forEach(fixHotel);
+useHotel(G.hotels[G.active]||G.hotels[0]);
 // администратор на ресепшене — уровень (0 = не нанят): сколько гостей обслуживает одновременно
 const DESK_COST=[600,900,1300,1800,2500], DESK_MAX=DESK_COST.length;
-if(!S.queue)S.queue=[];
-for(const k in S.help)if(typeof S.help[k]==='boolean')S.help[k]=S.help[k]?1:0; // помощник — уровень: сколько гостей одновременно
-if(S.staff&&typeof S.staff.desk==='boolean')S.staff.desk=S.staff.desk?1:0;
-if(!S.staff)S.staff={phone:false,desk:false,out:false};
-for(const p of S.pets){p.cd=p.cd||{};if(!p.acts)p.acts=p.act?[p.act]:[];delete p.act}
 
 // ---------- Утилиты ----------
 const rnd=(a,b)=>a+Math.random()*(b-a);
@@ -331,16 +450,16 @@ const svcTime=k=>SVC[k].time*Math.pow(0.85,S.lvl[k]);
 const lvlCost=k=>Math.round(25*Math.pow(1.8,S.lvl[k]));
 const tarOpen=k=>TAR[k].eq.every(e=>S.eq[e]);
 const svcOpen=k=>!SVC[k].eq||S.eq[SVC[k].eq];
-const svcName=(k,p)=>k==='groom'&&p&&p.type==='cat'?SVC.groom.catShort:SVC[k].short;
+const svcName=(k,p)=>(SVC[k].by&&p&&SVC[k].by[p.type])||SVC[k].short;
 const busySlots=()=>S.pets.length;
 const freeSlots=()=>S.rooms-busySlots();
 function freeRoom(){const u=new Set(S.pets.filter(p=>p.room!=null).map(p=>p.room));for(let i=0;i<S.rooms;i++)if(!u.has(i))return i;return -1}
-function save(){S.saved=Date.now();try{localStorage.setItem(SAVE_KEY,JSON.stringify(S))}catch(e){}}
+function save(){G.saved=Date.now();try{localStorage.setItem(SAVE_KEY,JSON.stringify(G))}catch(e){}}
 function load(){try{const s=localStorage.getItem(SAVE_KEY);return s?JSON.parse(s):null}catch(e){return null}}
 
 // ---------- Логика ----------
 function newGuest(){
-  const type=Math.random()<0.5?'cat':'dog',T=PET[type];
+  const type=pick(K.pets),T=PET[type];
   const needs=Object.keys(NEED).filter(k=>NEED[k][type]&&Math.random()<0.5);
   return {type,name:pick(T.names),age:Math.floor(rnd(1,12)),like:pick(T.likes),needs};
 }
@@ -374,7 +493,7 @@ function plan(p){
   const extra=knownNeeds(p);
   const food=extra.length>=3?3:2;
   const list=[...Array(food).fill('food'),...extra];
-  const tk=extra.some(k=>k==='walk'||k==='play')?'play':extra.length?'care':'hotel';
+  const tk=extra.some(k=>K.fun.includes(k))?'play':extra.length?'care':'hotel';
   return {list,tk,stay:60+15*extra.length,price:list.reduce((a,k)=>a+SVC_PRICE[k],0)};
 }
 function checkIn(id,auto){ // заселяем с комплексом по выявленным нуждам
@@ -388,7 +507,7 @@ function checkIn(id,auto){ // заселяем с комплексом по вы
   Object.assign(p,{state:'room',room:r,tariff:tk,stay:total,total,mood:meetMood(p)});p.meetAct=null;
   if(sheet&&sheet.type==='meet'&&sheet.k===id)closeSheet();
   toast((auto?'🛎️ Администратор: ':'')+`🏨 ${p.name} заселился в номер ${r+1}`);
-  setTimeout(()=>toastOnce('care','👀 Выбирайте сами, что делать: каждая процедура поднимает настроение'),2900);
+  if(!BG)setTimeout(()=>toastOnce('care','👀 Выбирайте сами, что делать: каждая процедура поднимает настроение'),2900);
 }
 const MOOD0=60, REPEAT_CD=12; // настроение после полного знакомства; пауза перед повтором той же процедуры
 const MOOD_NOMEET=35; // если не знакомились совсем
@@ -420,6 +539,7 @@ function pickup(id){
   const T=TAR[p.tariff],price=p.price||T.price;
   const stars=p.mood>=85?5:p.mood>=65?4:p.mood>=45?3:p.mood>=25?2:1;
   let amt=price*(0.5+p.mood/100*0.7);if(stars===5)amt*=1.2;
+  amt*=1+STAR_BONUS*G.stars;
   amt=Math.max(1,Math.round(amt));
   S.money+=amt;S.earned+=amt;S.served++;S.reviews.push(stars);if(S.reviews.length>20)S.reviews.shift();
   floatAt('room-'+p.room,'+'+amt+' 💰','#2f9a68');floatAt('room-'+p.room,'⭐'.repeat(stars),'#e0a100',22);
@@ -476,6 +596,7 @@ function buy(what,k){
   if(what==='room'){if(S.rooms>=MAX_ROOMS)return;c=ROOM_COST[S.rooms];if(S.money>=c){S.rooms++;ok=true;toast('🛏️ Новый номер готов!')}}
   if(what==='lvl'){if(S.lvl[k]>=MAX_LVL)return;c=lvlCost(k);if(S.money>=c){S.lvl[k]++;ok=true}}
   if(what==='help'){const l=S.help[k]||0;if(l>=HELP_MAX)return;c=helpCost(k);if(S.money>=c){S.help[k]=l+1;ok=true;toast(l?`🧑 Помощник «${SVC[k].name.toLowerCase()}» ур. ${l+1}: одновременно ${l+1} гостя`:`🧑 Помощник: «${SVC[k].name}» теперь сам`)}}
+  if(what==='manager'){if(S.manager||prestigeMissing().length)return;c=K.manager;if(S.money>=c){S.manager=true;ok=true;toast('👔 Управляющий нанят! Теперь можно открыть новый отель')}}
   if(what==='staff'&&k==='desk'){const l=S.staff.desk||0;if(l>=DESK_MAX)return;c=DESK_COST[l];if(S.money>=c){S.staff.desk=l+1;ok=true;toast(l?`🛎️ Администратор ур. ${l+1}: одновременно ${l+1} гостя`:'🛎️ В команде: администратор на ресепшене')}}
   else if(what==='staff'){if(S.staff[k])return;c=STAFF[k].cost;if(S.money>=c){S.staff[k]=true;ok=true;toast(`${STAFF[k].icon} В команде: ${STAFF[k].name.toLowerCase()}`)}}
   if(ok){S.money-=c;save();dirty=true}
@@ -486,8 +607,12 @@ function buy(what,k){
 // цифры и полоски обновляются на месте каждый кадр
 let sheet=null,dirty=true,lastKey='';
 function structKey(){
-  return [S.rooms,qOpen,freeSlots()>0,S.queue.map(q=>q.id).join(','),S.call?S.call.pet.name:'',Object.values(S.eq).join(''),Object.values(S.help).join(''),Object.values(S.staff).join(''),
+  return [G.active,G.hotels.length,G.stars,S.manager,S.prestiged,S.rooms,qOpen,freeSlots()>0,S.queue.map(q=>q.id).join(','),S.call?S.call.pet.name:'',Object.values(S.eq).join(''),Object.values(S.help).join(''),Object.values(S.staff).join(''),
     S.pets.map(p=>[p.id,p.state,p.room,p.tariff,p.did.length,p.adm?1:0,p.meetAct?p.meetAct.k:'',(p.acts||[]).map(a=>a.svc+(a.help?'h':'')).join('+'),Object.keys(S.help).filter(k=>S.help[k]&&helperBusy(k)).join(''),p.reqs.map(r=>r.done?'d':r.miss?'m':onCd(p,r.svc)?'c':'o').join('')].join(':')).join('|')].join('#');
+}
+function tabsHTML(){
+  if(G.hotels.length<2&&!G.stars)return '';
+  return `<div class="htabs">${G.hotels.map((H,i)=>`<button class="${i===G.active?'on':''}" data-act="hotel" data-k="${i}">${KINDS[H.kind].icon} ${KINDS[H.kind].name}</button>`).join('')}<span class="stars">⭐${G.stars}</span></div>`;
 }
 function phoneCard(){
   const adm=S.staff.phone;
@@ -571,7 +696,7 @@ function morphEl(x,y){
   morphChildren(x,y);
 }
 function render(){
-  morph($('app'),`<div class="head">
+  morph($('app'),`<div class="head">${tabsHTML()}
     <div class="top">
       <div class="pill"><span data-x="money"></span> 💰<small>монеты</small></div>
       <div class="pill"><span data-x="rating"></span> ⭐<small>рейтинг</small></div>
@@ -635,7 +760,7 @@ function needsHTML(p){
   if(p.meetAct&&p.meetAct.k==='check')return `<div class="hint">🩺 Идёт осмотр…</div>`;
   if(!p.did.includes('check'))return `<div class="hint">🩺 Осмотрите гостя, чтобы узнать, что ему нужно. Без осмотра — только еда, а хозяин может остаться недоволен.</div>`;
   const all=p.needs||[];
-  const rows=[`<div class="nd"><span>🍖</span>Еда и лежанка — всегда</div>`,
+  const rows=[`<div class="nd"><span>${SVC.food.icon}</span>Еда и лежанка — всегда</div>`,
     ...all.map(k=>svcOpen(k)?`<div class="nd"><span>${SVC[k].icon}</span>${NEED[k][p.type]} → ${svcName(k,p).toLowerCase()}</div>`
       :`<div class="nd off"><span>🔒</span>${NEED[k][p.type]} · нужно купить: ${EQ[SVC[k].eq].name.toLowerCase()}</div>`)];
   if(!all.length)rows.push(`<div class="hint">Здоров и доволен — больше ничего не нужно 👍</div>`);
@@ -664,9 +789,46 @@ function shopSheet(){
     <div class="sh-h">Помощники по уходу</div>
     ${open.map(k=>{const l=S.help[k]||0;
       return row('🧑',`Помощник: ${SVC[k].name.toLowerCase()}${l?' · ур. '+l:''}`,l?`Одновременно гостей: ${l}${l<HELP_MAX?' → '+(l+1):' (максимум)'}`:'Сразу сам берётся за эту процедуру. Ур. 1 — один гость за раз; пока он занят, можно сделать самому','help',k,helpCost(k),l>=HELP_MAX,'МАКС')}).join('')}
+    <div class="sh-h">Престиж</div>
+    ${prestigeHTML()}
     <div class="stats"><div>Гостей обслужено<b>${S.served}</b></div><div>Заработано<b>${fmt(S.earned)} 💰</b></div><div>Отказов<b>${S.declined}</b></div><div>Пропущено звонков<b>${S.missed}</b></div></div>
     <button class="link" data-act="reset">Начать заново</button>
     <div class="sh-sub" style="margin-top:10px;text-align:center">Хвостатый отель · версия ${VERSION}</div>`;
+}
+// ---------- Престиж ----------
+function prestigeMissing(){ // что ещё нужно для управляющего: всё оборудование, все помощники и весь персонал
+  const m=[];
+  for(const [k,e] of Object.entries(EQ))if(!S.eq[k])m.push(e.icon+' '+e.name.toLowerCase());
+  for(const k of Object.keys(SVC))if(!S.help[k])m.push('🧑 помощник: '+SVC[k].name.toLowerCase());
+  for(const [k,st] of Object.entries(STAFF))if(!S.staff[k])m.push(st.icon+' '+st.name.toLowerCase());
+  return m;
+}
+function nextKind(){const i=KIND_ORDER.indexOf(S.kind);return KIND_ORDER[i+1]||null}
+function prestigeHTML(){
+  if(S.prestiged)return `<div class="prest"><b>⭐ Престиж получен</b><small>Отель работает сам под присмотром управляющего и приносит доход в общий кошелёк.</small></div>`;
+  const miss=prestigeMissing();
+  if(!S.manager){
+    return `<div class="prest"><b>👔 Управляющий</b><small>Ведёт отель, пока вы заняты в другом. Нужен, чтобы получить звезду престижа.</small>
+      ${miss.length?`<small class="need">Сначала купите: ${miss.join(', ')}</small>`:`<small class="ok">✅ Всё готово — можно нанимать</small>`}
+      <button class="buy" data-act="buy" data-what="manager" ${!miss.length&&S.money>=K.manager?'':'disabled'}>${miss.length?'🔒 ':''}${fmt(K.manager)} 💰</button></div>`;
+  }
+  const nk=nextKind();
+  if(!nk)return `<div class="prest"><b>🚧 Следующий отель скоро</b><small>Новые звери уже в пути. Пока этот отель приносит доход и звёзды.</small></div>`;
+  const N=KINDS[nk];
+  return `<div class="prest"><b>⭐ Звезда престижа и новый отель</b>
+    <small>Откроется «${N.name}» ${N.icon}: ${N.pets.map(t=>PET[t].kind).join(', ')}. Этот отель останется вашим и будет работать сам. Каждая звезда — +10% к оплате во всех отелях.</small>
+    <button class="bigbtn green" data-act="prestige">⭐ Получить звезду и открыть отель</button></div>`;
+}
+function prestige(){
+  const nk=nextKind();if(!nk||!S.manager||S.prestiged)return;
+  if(!confirm(`Открыть «${KINDS[nk].name}»? Этот отель продолжит работать сам и приносить доход.`))return;
+  S.prestiged=true;G.stars++;
+  G.hotels.push(fresh(nk));switchHotel(G.hotels.length-1);
+  toast(`⭐ Звезда престижа! Добро пожаловать в «${K.name}» ${K.icon}`);save();
+}
+function switchHotel(i){
+  if(!G.hotels[i])return;
+  G.active=i;useHotel(G.hotels[i]);closeSheet();qOpen=false;dirty=true;window.scrollTo(0,0);
 }
 function petInfoSheet(id){
   const p=pet(id);if(!p||!p.tariff)return '';
@@ -688,6 +850,7 @@ function closeSheet(){sheet=null;$('back').style.display='none';$('sheet').style
 
 // ---------- Эффекты ----------
 function floatAt(id,text,color,dy){
+  if(BG)return;
   const el=$(id);if(!el)return;
   const r=el.getBoundingClientRect();
   const d=document.createElement('div');d.className='fl';d.textContent=text;d.style.color=color;
@@ -695,8 +858,8 @@ function floatAt(id,text,color,dy){
   $('fx').appendChild(d);setTimeout(()=>d.remove(),1100);
 }
 let toastT;
-function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2800)}
-function toastOnce(key,m){if(S.tips[key])return;S.tips[key]=1;toast(m)}
+function toast(m){if(BG)return;const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2800)}
+function toastOnce(key,m){if(BG||S.tips[key])return;S.tips[key]=1;toast(m)}
 
 // ---------- Ввод ----------
 document.addEventListener('pointerdown',e=>{
@@ -720,20 +883,31 @@ document.addEventListener('pointerdown',e=>{
   else if(a==='pickup')pickup(+k);
   else if(a==='petinfo')openSheet({type:'petinfo',k:+k});
   else if(a==='shop')openSheet({type:'shop'});
+  else if(a==='prestige')prestige();
+  else if(a==='hotel'){if(+k!==G.active)switchHotel(+k)}
   else if(a==='buy'){buy(el.dataset.what,k);renderSheet()}
   else if(a==='buyroom'){const c=ROOM_COST[S.rooms];if(S.money>=c)buy('room');else toast(`Новый номер стоит ${fmt(c)} 💰`)}
   else if(a==='close')closeSheet();
-  else if(a==='reset'){if(confirm('Начать игру заново?')){S=fresh();save();closeSheet();dirty=true}}
+  else if(a==='reset'){if(confirm('Начать игру заново? Все отели и звёзды будут сброшены.')){G=freshG();G.hotels.forEach(attach);useHotel(G.hotels[0]);save();closeSheet();dirty=true}}
 });
 document.addEventListener('visibilitychange',()=>{if(document.hidden)save();else last=performance.now()});
 window.addEventListener('pagehide',()=>save());
 
 // ---------- Цикл ----------
+// Отели, в которых вас сейчас нет, живут сами: тот же tick(), но без всплывашек и окон
+let BG=false;
+function bgTick(H,dt){
+  const me=S,sh=sheet,qo=qOpen;
+  BG=true;sheet=null;useHotel(H);
+  try{for(let r=dt;r>0;r-=0.1)tick(Math.min(0.1,r))}
+  finally{useHotel(me);sheet=sh;qOpen=qo;BG=false}
+}
 // Пока игра закрыта, время стоит: гости ждут вас, никто не грустит.
 let last=performance.now(),saveAcc=0,sheetAcc=0;
 function loop(now){
   const dt=Math.min(1,Math.max(0,(now-last)/1000));last=now;
   for(let r=dt;r>0;r-=0.1)tick(Math.min(0.1,r));
+  for(const H of G.hotels)if(H!==S)bgTick(H,dt);
   const key=structKey();
   if(dirty||key!==lastKey){lastKey=key;dirty=false;render()}else update();
   sheetAcc+=dt;if(sheetAcc>0.5&&sheet&&(sheet.type==='shop'||sheet.type==='petinfo')){sheetAcc=0;renderSheet()}
