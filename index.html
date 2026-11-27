@@ -318,7 +318,7 @@ function parrotSvg(){
 }
 
 // ---------- Данные ----------
-const VERSION='2.2.1';
+const VERSION='2.2.2';
 const SAVE_KEY='pethotel_v4'; // 2.1 — несколько отелей; сохранение 2.0 (pethotel_v3) переносится и не удаляется
 const OLD_KEY='pethotel_v3';
 const PET={
@@ -453,8 +453,7 @@ const tarOpen=k=>TAR[k].eq.every(e=>S.eq[e]);
 const svcOpen=k=>!SVC[k].eq||S.eq[SVC[k].eq];
 const svcName=(k,p)=>(SVC[k].by&&p&&SVC[k].by[p.type])||SVC[k].short;
 const busySlots=()=>S.pets.length;
-const LOBBY_EXTRA=2; // в приёмной могут ждать ещё 2 гостя сверх номеров — чтобы номер не пустовал, пока следующий едет и знакомится
-const freeSlots=()=>S.rooms+LOBBY_EXTRA-busySlots();
+const freeSlots=()=>S.rooms-busySlots(); // номер бронируется сразу при звонке — гости никогда не ждут
 const inRooms=()=>S.pets.filter(p=>p.room!=null).length;
 function freeRoom(){const u=new Set(S.pets.filter(p=>p.room!=null).map(p=>p.room));for(let i=0;i<S.rooms;i++)if(!u.has(i))return i;return -1}
 function save(){G.saved=Date.now();try{localStorage.setItem(SAVE_KEY,JSON.stringify(G))}catch(e){}}
