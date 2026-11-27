@@ -219,7 +219,7 @@ function spitzSvg(){
 }
 
 // ---------- Данные ----------
-const VERSION='2.0.5';
+const VERSION='2.0.6';
 const SAVE_KEY='pethotel_v3'; // 2.0 — новая игра; сохранения 1.x не трогаем
 const PET={
   cat:{svg:catSvg(),kind:'кот',whose:'кота',names:['Мурзик','Уголёк','Ночка','Багира','Тень','Маркиз','Луна','Пантера','Сажа','Черныш'],
@@ -502,8 +502,33 @@ function roomHTML(i){
     ${pick?`<button class="pickbtn" data-act="pickup" data-k="${p.id}">🚗 Отдать хозяину</button>`:`<div class="acts">${btns}</div>`}
   </div>`;
 }
+// Аккуратное обновление DOM: меняем только то, что действительно изменилось.
+// Элементы остаются на месте — анимации не перезапускаются и экран не «дёргается».
+function morph(to,html){
+  const tpl=document.createElement('div');tpl.innerHTML=html;
+  morphChildren(to,tpl);
+}
+function morphChildren(a,b){
+  const an=a.childNodes,bn=[...b.childNodes];
+  for(let i=0;i<bn.length;i++){
+    const x=an[i],y=bn[i];
+    if(!x){a.appendChild(y);continue}
+    if(x.nodeType!==y.nodeType||x.nodeName!==y.nodeName){a.replaceChild(y,x);continue}
+    if(x.nodeType===3||x.nodeType===8){if(x.nodeValue!==y.nodeValue)x.nodeValue=y.nodeValue;continue}
+    morphEl(x,y);
+  }
+  while(an.length>bn.length)a.removeChild(a.lastChild);
+}
+function morphEl(x,y){
+  const live=x.hasAttribute('data-w'); // ширину/цвет полосок ставит update() — не трогаем
+  for(const at of [...x.attributes])if(!y.hasAttribute(at.name)&&!(live&&at.name==='style'))x.removeAttribute(at.name);
+  for(const at of y.attributes){if(live&&at.name==='style')continue;if(x.getAttribute(at.name)!==at.value)x.setAttribute(at.name,at.value)}
+  if('disabled' in x&&x.disabled!==y.disabled)x.disabled=y.disabled;
+  if(x.hasAttribute('data-x')&&x.textContent)return; // цифры ставит update()
+  morphChildren(x,y);
+}
 function render(){
-  $('app').innerHTML=`<div class="head">
+  morph($('app'),`<div class="head">
     <div class="top">
       <div class="pill"><span data-x="money"></span> 💰<small>монеты</small></div>
       <div class="pill"><span data-x="rating"></span> ⭐<small>рейтинг</small></div>
@@ -513,7 +538,7 @@ function render(){
     <h3><span>Приёмная</span></h3>${lobbyHTML()}
     <h3><span>Номера</span></h3>
     <div class="rooms">${[...Array(S.rooms)].map((_,i)=>roomHTML(i)).join('')}
-      ${S.rooms<MAX_ROOMS?`<div class="rcard add" data-act="buyroom"><b>＋</b>Новый номер · ${fmt(ROOM_COST[S.rooms])} 💰</div>`:''}</div>`;
+      ${S.rooms<MAX_ROOMS?`<div class="rcard add" data-act="buyroom"><b>＋</b>Новый номер · ${fmt(ROOM_COST[S.rooms])} 💰</div>`:''}</div>`);
   update();
 }
 function update(){ // каждый кадр: только цифры и полоски
@@ -611,9 +636,11 @@ function petInfoSheet(id){
 function renderSheet(){
   if(!sheet)return;
   const h=sheet.type==='call'?callSheet():sheet.type==='meet'?meetSheet(sheet.k):sheet.type==='shop'?shopSheet():sheet.type==='petinfo'?petInfoSheet(sheet.k):'';
-  if(h)$('sheetIn').innerHTML=h;else closeSheet();
+  if(!h){closeSheet();return}
+  const box=$('sheetIn'),st=box.scrollTop; // прокрутка окна не должна сбрасываться при обновлении
+  morph(box,h);if(box.scrollTop!==st)box.scrollTop=st;
 }
-function openSheet(s){sheet=s;$('back').style.display='block';$('sheet').style.display='flex';renderSheet()}
+function openSheet(s){sheet=s;$('sheetIn').innerHTML='';$('back').style.display='block';$('sheet').style.display='flex';renderSheet()}
 function closeSheet(){sheet=null;$('back').style.display='none';$('sheet').style.display='none'}
 
 // ---------- Эффекты ----------
