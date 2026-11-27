@@ -196,6 +196,32 @@ h3{margin:14px 2px 6px;font-size:12px;color:var(--muted);text-transform:uppercas
 .sh-sub{color:var(--muted);font-size:13px;margin-bottom:10px}
 .sh-h{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:16px 2px 2px;font-weight:700}
 .row{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:14px;padding:10px 12px;margin-top:8px;box-shadow:0 2px 0 var(--line)}
+/* ---- Магазин: вкладки и карточки с уровнями ---- */
+.stabs{display:flex;gap:4px;background:#f0e4d6;border-radius:12px;padding:3px;margin:6px 0 4px;position:sticky;top:-16px;z-index:2}
+.stabs button{flex:1 1 auto;min-width:0;white-space:nowrap;border:none;background:none;border-radius:9px;padding:8px 3px;font-family:inherit;font-weight:800;font-size:11px;letter-spacing:-.01em;color:var(--muted);cursor:pointer;position:relative}
+.stabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 0 var(--line)}
+.stabs button .dot{position:absolute;top:3px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--accent2)}
+.scard{background:var(--card);border-radius:16px;padding:10px 12px;margin-top:8px;box-shadow:0 2px 0 var(--line)}
+.scard .sh{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px}
+.scard .sh .ic{font-size:24px}
+.scard .sh .tag{margin-left:auto;font-size:11px;font-weight:800;color:var(--accent2);background:#e7f6ee;border-radius:8px;padding:2px 7px;white-space:nowrap}
+.scard .lock{font-size:12px;color:var(--muted);margin-top:4px}
+.up{display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid var(--track)}
+.scard .sh+.up{border-top:none;padding-top:2px}
+.up .ul{flex:1;min-width:0}
+.up .ul b{font-size:13px;display:flex;align-items:center;gap:6px}
+.up .ul b em{font-style:normal;font-size:11px;color:var(--muted);font-weight:800}
+.up .ul small{display:block;color:var(--muted);font-size:11px;margin-top:3px;line-height:1.3}
+.pips{display:flex;gap:3px;margin-top:4px}
+.pips i{flex:1;max-width:22px;height:6px;border-radius:3px;background:#efe3d4}
+.pips i.on{background:var(--accent2)}
+.pips.lots i{max-width:12px}
+.ubtn{border:none;border-radius:12px;min-width:84px;padding:7px 8px;font-family:inherit;cursor:pointer;background:var(--accent2);color:#fff;line-height:1.15;text-align:center}
+.ubtn b{display:block;font-size:11px;font-weight:800;opacity:.9}
+.ubtn span{display:block;font-size:14px;font-weight:900}
+.ubtn:disabled{background:#cbbfb4;cursor:default}
+.ubtn.max{background:transparent;color:var(--accent2);box-shadow:inset 0 0 0 2px #bfe5cf}
+.ubtn.max span{font-size:13px}
 .row .ic{font-size:26px}
 .row div{flex:1}
 .row small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
@@ -351,7 +377,7 @@ function parrotSvg(){
 }
 
 // ---------- Данные ----------
-const VERSION='2.3.1';
+const VERSION='2.4';
 const SAVE_KEY='pethotel_v4'; // 2.1 — несколько отелей; сохранение 2.0 (pethotel_v3) переносится и не удаляется
 const OLD_KEY='pethotel_v3';
 const PET={
@@ -528,12 +554,17 @@ function callBack(qid,auto){ // перезваниваем гостю из оч�
 // Что видно после осмотра (только услуги, на которые есть оборудование)
 const knownNeeds=p=>p.did.includes('check')?(p.needs||[]).filter(svcOpen):[];
 const hiddenNeeds=p=>(p.needs||[]).filter(k=>svcOpen(k)&&!knownNeeds(p).includes(k));
+// Цена услуги растёт с прокачкой: +5% за каждый уровень скорости и +10% за каждый уровень помощника
+const PRICE_PER_LVL=0.05, PRICE_PER_HELP=0.10;
+const priceMult=(k,lvl=S.lvl[k]||0,help=S.help[k]||0)=>1+PRICE_PER_LVL*lvl+PRICE_PER_HELP*help;
+const svcPrice=k=>SVC_PRICE[k]*priceMult(k);
+const pct=m=>'+'+Math.round((m-1)*100)+'%';
 function plan(p){
   const extra=knownNeeds(p);
   const food=extra.length>=3?3:2;
   const list=[...Array(food).fill('food'),...extra];
   const tk=extra.some(k=>K.fun.includes(k))?'play':extra.length?'care':'hotel';
-  return {list,tk,stay:60+15*extra.length,price:list.reduce((a,k)=>a+SVC_PRICE[k],0)};
+  return {list,tk,stay:60+15*extra.length,price:list.reduce((a,k)=>a+svcPrice(k),0)};
 }
 function checkIn(id,auto){ // заселяем с комплексом по выявленным нуждам
   const p=pet(id);if(!p||p.state!=='arrived')return;
@@ -827,31 +858,61 @@ function row(ic,title,desc,what,k,c,done,doneText){
   const btn=done?`<button class="buy done" disabled>${doneText||'✅'}</button>`:`<button class="buy" data-act="buy" data-what="${what}" ${k!=null?`data-k="${k}"`:''} ${S.money>=c?'':'disabled'}>${fmt(c)} 💰</button>`;
   return `<div class="row"><span class="ic">${ic}</span><div><b>${title}</b><small>${desc}</small></div>${btn}</div>`;
 }
+let shopTab='svc';
+function pips(l,max){return `<div class="pips ${max>6?'lots':''}">${[...Array(max)].map((_,i)=>`<i class="${i<l?'on':''}"></i>`).join('')}</div>`}
+// Строка прокачки: название, «ур. N/M», полоска уровней, пояснение и кнопка с уровнем и ценой
+function up(title,l,max,cost,what,k,note,word){
+  const isMax=l>=max;
+  const btn=isMax?`<button class="ubtn max" disabled><span>${max>1?'МАКС':word==='Нанять'?'Нанят ✅':'Есть ✅'}</span></button>`
+    :`<button class="ubtn" data-act="buy" data-what="${what}" ${k!=null?`data-k="${k}"`:''} ${S.money>=cost?'':'disabled'}><b>${what==='room'?'+1 номер':l?`↑ ур. ${l+1}`:(word||'Купить')}</b><span>${fmt(cost)} 💰</span></button>`;
+  return `<div class="up"><div class="ul"><b>${title}${max>1?` <em>${what==='room'?'':'ур. '}${l}/${max}</em>`:l?' <em>✅</em>':''}</b>${max>1?pips(l,max):''}${note?`<small>${note}</small>`:''}</div>${btn}</div>`;
+}
+const canAfford=c=>S.money>=c;
 function shopSheet(){
-  const open=Object.keys(SVC).filter(svcOpen);
+  // зелёная точка на вкладке — там есть что купить прямо сейчас
+  const has={
+    svc:Object.keys(SVC).some(k=>svcOpen(k)?(S.lvl[k]<MAX_LVL&&canAfford(lvlCost(k)))||((S.help[k]||0)<HELP_MAX&&canAfford(helpCost(k))):canAfford(EQ[SVC[k].eq].cost)),
+    staff:Object.keys(STAFF).some(k=>k==='desk'?(S.staff.desk||0)<DESK_MAX&&canAfford(DESK_COST[S.staff.desk||0]):!S.staff[k]&&canAfford(STAFF[k].cost)),
+    hotel:(S.rooms<MAX_ROOMS&&canAfford(ROOM_COST[S.rooms]))||((S.ads||0)<ADS_MAX&&canAfford(adsCost())),
+    prest:!S.manager&&!prestigeMissing().length&&canAfford(K.manager),
+  };
+  const tabs=[['svc','🧼 Услуги'],['staff','👥 Персонал'],['hotel','🏨 Отель'],['prest','⭐ Престиж']];
+  let body='';
+  if(shopTab==='svc'){
+    body=Object.keys(SVC).map(k=>{
+      const sv=SVC[k],open=svcOpen(k);
+      if(!open){const e=EQ[sv.eq];
+        return `<div class="scard"><div class="sh"><span class="ic">${sv.icon}</span>${sv.name}</div><div class="lock">🔒 Нужно оборудование: ${e.icon} ${e.name} — ${e.desc.toLowerCase()}</div>${up(e.icon+' '+e.name,0,1,e.cost,'eq',sv.eq,'','Купить')}</div>`}
+      const l=S.lvl[k],h=S.help[k]||0;
+      return `<div class="scard"><div class="sh"><span class="ic">${sv.icon}</span>${sv.name}<span class="tag">💰 ${Math.round(svcPrice(k))} · ${pct(priceMult(k))}</span></div>
+        ${up('⚡ Скорость',l,MAX_LVL,lvlCost(k),'lvl',k,l>=MAX_LVL?`${svcTime(k).toFixed(1)} с`:`${svcTime(k).toFixed(1)} с → ${(svcTime(k)*0.85).toFixed(1)} с · цена +${PRICE_PER_LVL*100}%`)}
+        ${up('🧑 Помощник',h,HELP_MAX,helpCost(k),'help',k,h>=HELP_MAX?`Ведёт ${h} гостей одновременно`:h?`Гостей одновременно: ${h} → ${h+1} · цена +${PRICE_PER_HELP*100}%`:`Сам делает «${sv.name.toLowerCase()}». Цена +${PRICE_PER_HELP*100}%`,'Нанять')}
+      </div>`;
+    }).join('');
+  }
+  else if(shopTab==='staff'){
+    body=Object.entries(STAFF).map(([k,st])=>{
+      if(k==='desk'){const l=S.staff.desk||0;
+        return `<div class="scard"><div class="sh"><span class="ic">${st.icon}</span>${st.name}</div>${up('Уровень',l,DESK_MAX,DESK_COST[l]||0,'staff',k,l>=DESK_MAX?`Ведёт ${l} гостей одновременно`:l?`Гостей одновременно: ${l} → ${l+1}`:st.desc,'Нанять')}</div>`}
+      return `<div class="scard"><div class="sh"><span class="ic">${st.icon}</span>${st.name}</div>${up(S.staff[k]?'Нанят':'Не нанят',S.staff[k]?1:0,1,st.cost,'staff',k,st.desc,'Нанять')}</div>`;
+    }).join('');
+  }
+  else if(shopTab==='hotel'){
+    body=`<div class="scard"><div class="sh"><span class="ic">🏨</span>Номера</div>${up('Номеров',S.rooms,MAX_ROOMS,ROOM_COST[S.rooms]||0,'room',null,'Можно принять больше гостей','Купить')}</div>
+      <div class="scard"><div class="sh"><span class="ic">📣</span>Реклама</div>${up('Уровень',S.ads||0,ADS_MAX,(S.ads||0)>=ADS_MAX?0:adsCost(),'ads',null,(S.ads||0)>=ADS_MAX?`Звонят в среднем раз в ${Math.round(avgGap())} с`:`Звонят в среднем раз в ${Math.round(avgGap())} с → ${Math.round(avgGap((S.ads||0)+1))} с`,'Запустить')}</div>
+      <div class="scard"><div class="sh"><span class="ic">🛏️</span>Оборудование</div>
+        ${up('🛏️ Лежанка и миски',1,1,0,'eq',null,'Есть с самого начала')}
+        ${Object.entries(EQ).map(([k,e])=>up(e.icon+' '+e.name,S.eq[k]?1:0,1,e.cost,'eq',k,e.desc,'Купить')).join('')}</div>`;
+  }
+  else{
+    body=`${prestigeHTML()}
+      <div class="stats"><div>Гостей обслужено<b>${S.served}</b></div><div>Заработано<b>${fmt(S.earned)} 💰</b></div><div>Отказов<b>${S.declined}</b></div><div>Пропущено звонков<b>${S.missed}</b></div></div>
+      <button class="link" data-act="reset">Начать заново</button>`;
+  }
   return `<div class="sh-title">🛒 Магазин и прокачка</div><div class="sh-sub">Баланс: ${fmt(S.money)} 💰</div>
-    <div class="sh-h">Оборудование</div>
-    ${row('🛏️','Лежанка и миски','Есть с самого начала',null,null,0,true,'Есть ✅')}
-    ${Object.entries(EQ).map(([k,e])=>row(e.icon,e.name,e.desc,'eq',k,e.cost,S.eq[k],'Есть ✅')).join('')}
-    <div class="sh-h">Номера и реклама</div>
-    ${row('🏨',`Новый номер · ${S.rooms}/${MAX_ROOMS}`,'Можно принять больше гостей','room',null,ROOM_COST[S.rooms]||0,S.rooms>=MAX_ROOMS,'МАКС')}
-    ${row('📣',`Реклама${S.ads?' · ур. '+S.ads:''}`,S.ads>=ADS_MAX?`Звонят в среднем раз в ${Math.round(avgGap())} с (максимум)`:`Звонят в среднем раз в ${Math.round(avgGap())} с → ${Math.round(avgGap((S.ads||0)+1))} с`,'ads',null,S.ads>=ADS_MAX?0:adsCost(),S.ads>=ADS_MAX,'МАКС')}
-    <div class="sh-h">Скорость ухода</div>
-    ${open.map(k=>row(SVC[k].icon,`${SVC[k].name} · ур. ${S.lvl[k]+1}`,`${svcTime(k).toFixed(1)} с → ${(svcTime(k)*0.85).toFixed(1)} с`,'lvl',k,lvlCost(k),S.lvl[k]>=MAX_LVL,'МАКС')).join('')}
-    <div class="sh-h">Персонал</div>
-    ${Object.entries(STAFF).map(([k,st])=>{
-      if(k!=='desk')return row(st.icon,st.name,st.desc,'staff',k,st.cost,S.staff[k],'Нанят ✅');
-      const l=S.staff.desk||0;
-      return row(st.icon,l?`${st.name} · ур. ${l}`:st.name,l?`Одновременно гостей: ${l}${l<DESK_MAX?' → '+(l+1):' (максимум)'}`:st.desc+'. Ур. 1 — по одному гостю за раз','staff',k,DESK_COST[l]||0,l>=DESK_MAX,'МАКС');
-    }).join('')}
-    <div class="sh-h">Помощники по уходу</div>
-    ${open.map(k=>{const l=S.help[k]||0;
-      return row('🧑',`Помощник: ${SVC[k].name.toLowerCase()}${l?' · ур. '+l:''}`,l?`Одновременно гостей: ${l}${l<HELP_MAX?' → '+(l+1):' (максимум)'}`:'Сразу сам берётся за эту процедуру. Ур. 1 — один гость за раз; пока он занят, можно сделать самому','help',k,helpCost(k),l>=HELP_MAX,'МАКС')}).join('')}
-    <div class="sh-h">Престиж</div>
-    ${prestigeHTML()}
-    <div class="stats"><div>Гостей обслужено<b>${S.served}</b></div><div>Заработано<b>${fmt(S.earned)} 💰</b></div><div>Отказов<b>${S.declined}</b></div><div>Пропущено звонков<b>${S.missed}</b></div></div>
-    <button class="link" data-act="reset">Начать заново</button>
-    <div class="sh-sub" style="margin-top:10px;text-align:center">Хвостатый отель · версия ${VERSION}</div>`;
+    <div class="stabs">${tabs.map(([k,n])=>`<button class="${shopTab===k?'on':''}" data-act="shoptab" data-k="${k}">${n}${has[k]&&shopTab!==k?'<i class="dot"></i>':''}</button>`).join('')}</div>
+    ${body}
+    <div class="sh-sub" style="margin-top:12px;text-align:center">Хвостатый отель · версия ${VERSION}</div>`;
 }
 // ---------- Престиж ----------
 function prestigeMissing(){ // что ещё нужно для управляющего: всё оборудование, все помощники и весь персонал
@@ -950,6 +1011,7 @@ document.addEventListener('pointerdown',e=>{
   else if(a==='prestige')prestige();
   else if(a==='hotel'){if(+k!==G.active)switchHotel(+k)}
   else if(a==='buy'){buy(el.dataset.what,k);renderSheet()}
+  else if(a==='shoptab'){shopTab=k;renderSheet();$('sheetIn').scrollTop=0}
   else if(a==='buyroom'){const c=ROOM_COST[S.rooms];if(S.money>=c)buy('room');else toast(`Новый номер стоит ${fmt(c)} 💰`)}
   else if(a==='close')closeSheet();
   else if(a==='reset'){if(confirm('Начать игру заново? Все отели и звёзды будут сброшены.')){G=freshG();G.hotels.forEach(attach);useHotel(G.hotels[0]);save();closeSheet();dirty=true}}
