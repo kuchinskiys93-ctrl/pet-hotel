@@ -61,6 +61,14 @@ h3{margin:14px 2px 6px;font-size:12px;color:var(--muted);text-transform:uppercas
 .guest.ready{box-shadow:0 0 0 3px var(--accent),0 3px 0 var(--line)}
 .guest.ready .av{animation:hopin 1s infinite}
 .guest.coming{cursor:default}
+.guest>div:last-child{flex:1;min-width:0}
+.guest.busy{box-shadow:0 0 0 3px var(--accent2),0 3px 0 var(--line)}
+.guest.busy .av{animation:none}
+.gsteps{display:flex;gap:4px;margin-top:5px}
+.gsteps span{font-size:13px;width:24px;height:24px;border-radius:8px;background:#f3ebe1;display:flex;align-items:center;justify-content:center;opacity:.55}
+.gsteps span.ok{background:#e7f6ee;opacity:1}
+.gsteps span.now{background:#fff7ec;box-shadow:0 0 0 2px var(--accent2);opacity:1;animation:pulse 1s infinite}
+.guest .bar{height:5px;margin-top:5px}
 .guest.coming .av{animation:drive 1.2s ease-in-out infinite}
 @keyframes drive{0%,100%{transform:translateX(-3px)}50%{transform:translateX(3px)}}
 @keyframes hopin{0%,100%{transform:translateY(0)}40%{transform:translateY(-8px)}}
@@ -211,7 +219,7 @@ function spitzSvg(){
 }
 
 // ---------- Данные ----------
-const VERSION='2.0.3';
+const VERSION='2.0.4';
 const SAVE_KEY='pethotel_v3'; // 2.0 — новая игра; сохранения 1.x не трогаем
 const PET={
   cat:{svg:catSvg(),kind:'кот',whose:'кота',names:['Мурзик','Уголёк','Ночка','Багира','Тень','Маркиз','Луна','Пантера','Сажа','Черныш'],
@@ -422,7 +430,7 @@ function buy(what,k){
 let sheet=null,dirty=true,lastKey='';
 function structKey(){
   return [S.rooms,qOpen,freeSlots()>0,S.queue.map(q=>q.id).join(','),S.call?S.call.pet.name:'',Object.values(S.eq).join(''),Object.values(S.help).join(''),Object.values(S.staff).join(''),
-    S.pets.map(p=>[p.id,p.state,p.room,p.tariff,p.act?p.act.svc+(p.act.help?'h':''):'',p.reqs.map(r=>r.done?'d':r.miss?'m':onCd(p,r.svc)?'c':'o').join('')].join(':')).join('|')].join('#');
+    S.pets.map(p=>[p.id,p.state,p.room,p.tariff,p.did.length,p.meetAct?p.meetAct.k:'',p.act?p.act.svc+(p.act.help?'h':''):'',p.reqs.map(r=>r.done?'d':r.miss?'m':onCd(p,r.svc)?'c':'o').join('')].join(':')).join('|')].join('#');
 }
 function phoneCard(){
   const adm=S.staff.phone;
@@ -441,7 +449,16 @@ function lobbyHTML(){
   if(!L.length)return `<div class="empty-note">Здесь появятся гости, когда вы примете звонок.</div>`;
   return `<div class="lobby">${L.map(p=>p.state==='coming'
     ?`<div class="guest coming"><div class="av">🚗</div><div><b>${p.name} едет</b><small>будет через <span data-x="eta:${p.id}"></span> с</small></div></div>`
-    :`<div class="guest ready" data-act="meet" data-k="${p.id}"><div class="av">${PET[p.type].svg}</div><div><b>${p.name} приехал!</b><small>тапни, чтобы познакомиться</small></div></div>`).join('')}</div>`;
+    :guestReadyHTML(p)).join('')}</div>`;
+}
+function guestReadyHTML(p){ // карточка в приёмной: видно, как идёт знакомство (ваше или администратора)
+  const adm=S.staff.desk,busy=p.meetAct||(adm&&p.did.length);
+  const steps=`<div class="gsteps">${Object.entries(MEET).map(([k,m])=>`<span class="${p.did.includes(k)?'ok':p.meetAct&&p.meetAct.k===k?'now':''}">${p.did.includes(k)?'✅':m.icon}</span>`).join('')}</div>`;
+  const who=adm?'🛎️ Администратор':'Вы';
+  const txt=p.meetAct?`${who}: ${MEET[p.meetAct.k].name.toLowerCase()}…`
+    :p.did.length>=3?(adm?'🛎️ Администратор заселяет…':'знакомство пройдено — можно заселять')
+    :adm?'🛎️ Администратор сейчас подойдёт':'тапни, чтобы познакомиться';
+  return `<div class="guest ${busy?'busy':'ready'}" data-act="meet" data-k="${p.id}"><div class="av">${PET[p.type].svg}</div><div><b>${p.name} приехал!</b><small>${txt}</small>${steps}${p.meetAct?`<div class="bar"><i data-w="meet:${p.id}" style="background:var(--accent2)"></i></div>`:''}</div></div>`;
 }
 function roomHTML(i){
   const p=S.pets.find(x=>x.room===i);
