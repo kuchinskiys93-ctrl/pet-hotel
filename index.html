@@ -91,6 +91,8 @@ h3{margin:14px 2px 6px;font-size:12px;color:var(--muted);text-transform:uppercas
 .svc.req{background:#fff;box-shadow:0 0 0 3px var(--accent);animation:pulse 1s infinite}
 .svc.req small{color:var(--accent)}
 .svc.doing{background:#e7f6ee;box-shadow:0 0 0 3px var(--accent2)}
+.svc.can{background:#4a8fe0;color:#fff;box-shadow:0 3px 0 #2f6db8;animation:pulse 1.2s infinite}
+.svc.can small,.svc.can .cnt{color:#fff}
 .svc.done{opacity:.45}
 .svc.cd{opacity:.6;background:#efe6da}
 .svc.cd small{color:var(--muted)}
@@ -209,7 +211,7 @@ function spitzSvg(){
 }
 
 // ---------- Данные ----------
-const VERSION='2.0';
+const VERSION='2.0.1';
 const SAVE_KEY='pethotel_v3'; // 2.0 — новая игра; сохранения 1.x не трогаем
 const PET={
   cat:{svg:catSvg(),kind:'кот',whose:'кота',names:['Мурзик','Уголёк','Ночка','Багира','Тень','Маркиз','Луна','Пантера','Сажа','Черныш'],
@@ -452,7 +454,7 @@ function roomHTML(i){
     const all=p.reqs.filter(r=>r.svc===k),done=all.filter(r=>r.done).length;
     const req=activeReq(p,k),doing=p.act&&p.act.svc===k;
     const cd=!doing&&req&&onCd(p,k);
-    const cls=doing?'doing':done===all.length?'done':cd?'cd':'';
+    const cls=doing?'doing':done===all.length?'done':cd?'cd':p.act?'':'can'; // можно делать прямо сейчас — яркая кнопка
     return `<button class="svc ${cls}" data-act="svc" data-k="${p.id}:${k}">${S.help[k]?'<span class="help">🧑</span>':''}<span class="cnt">${done}/${all.length}</span>${SVC[k].icon}<small>${doing&&p.act.help?'помощник':cd?'отдыхает':svcName(k,p)}</small>${doing?`<i class="prog" data-w="act:${p.id}"></i>`:''}</button>`;
   }).join('');
   const pick=p.state==='pickup';
