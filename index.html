@@ -270,6 +270,24 @@ img.pv.photo{border-radius:50%;box-shadow:0 0 0 .05em #fff,0 .04em .1em #0004;ob
 @keyframes fl{to{transform:translate(-50%,-160%);opacity:0}}
 #toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 14px;border-radius:12px;font-size:14px;z-index:25;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;text-align:center}
 #toast.show{opacity:1}
+/* ---- Тема «Премиум» для «Пушистого дворика»: лаванда и золото ---- */
+body.k-rodents{--bg:#f1eafc;--card:#fffdf8;--ink:#3a2c55;--muted:#7d6f96;--line:#e3d6f5;--track:#ece3fa;--accent:#9b6fe0;background:var(--bg);color:var(--ink)}
+body.k-rodents .pill,body.k-rodents .card,body.k-rodents .qbar{box-shadow:0 0 0 1.5px #e2b84a,0 2px 0 var(--line)}
+body.k-rodents .rcard.lv1:not(.pickup){box-shadow:inset 0 0 0 1.5px #e2b84a,0 3px 0 var(--line)}
+body.k-rodents .rcard.free.lv1{background:repeating-linear-gradient(135deg,#fbf8ff 0 12px,#f3ecfd 12px 24px)}
+body.k-rodents .svc.can{background:#8a63d8;box-shadow:0 3px 0 #6b47b8}
+body.k-rodents .phone .ring{background:radial-gradient(circle at 35% 30%,#ffe9a8,#e0a92e 70%,#b8831a);box-shadow:0 0 0 3px #fff3cf}
+body.k-rodents .phone.idle .ring{background:radial-gradient(circle at 35% 30%,#fff4d2,#ecc76a 75%,#c99a2e);opacity:.9}
+body.k-rodents .bigbtn:not(.green):not(.ghost){background:#3a2c55}
+body.k-rodents .bigbtn.green,body.k-rodents .ubtn:not(.max):not(:disabled),body.k-rodents .buy:not(.done):not(:disabled){background:#8a63d8}
+body.k-rodents .ubtn.max{color:#8a63d8;box-shadow:inset 0 0 0 2px #d7c6f5}
+body.k-rodents .pips i.on{background:#9b6fe0}
+body.k-rodents .sheet-bg,body.k-rodents #sheet .in{background:var(--bg)}
+body.k-rodents .stabs{background:#e6dcf7}
+.guest .av.ride{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:34px;animation:drive 1.2s ease-in-out infinite}
+.guest .av.ride .rider{font-size:19px;line-height:1;margin-bottom:-5px;position:relative;z-index:1}
+.guest .av.ride .car{position:static;font-size:24px;line-height:1;animation:none}
+.guest .av.ride .car svg{width:64px;height:auto;display:block}
 /* ---- Приёмная: мини-карточки, видно до 4 гостей сразу ---- */
 .lobby{height:100px}
 .guest{flex:0 0 calc(25% - 6px);height:94px;flex-direction:column;justify-content:flex-start;gap:2px;padding:6px 3px;text-align:center;border-radius:14px}
@@ -428,8 +446,15 @@ function face(g){
   return photoImg(L[i%L.length]);
 }
 
+function limoSvg(){ // белый лимузин с золотом — машинка гостей «Пушистого дворика»
+  return `<svg viewBox="0 0 140 52" aria-hidden="true"><path d="M6 38 L10 26 Q12 22 18 22 L40 22 L48 14 L104 14 L114 22 L126 24 Q134 26 134 34 L134 40 L6 40 Z" fill="#fbfbfd" stroke="#cfd3dc" stroke-width="2"/>
+    <path d="M50 17 L60 17 L60 24 L44 24 Z M64 17 L82 17 L82 24 L64 24 Z M86 17 L102 17 L110 24 L86 24 Z" fill="#2c3550"/>
+    <rect x="6" y="33" width="128" height="3.5" fill="#e2b84a"/><circle cx="30" cy="42" r="8" fill="#2b2b2b"/><circle cx="30" cy="42" r="3.5" fill="#e2b84a"/><circle cx="112" cy="42" r="8" fill="#2b2b2b"/><circle cx="112" cy="42" r="3.5" fill="#e2b84a"/>
+    <circle cx="130" cy="30" r="3" fill="#ffe7a0"/></svg>`;
+}
+
 // ---------- Данные ----------
-const VERSION='2.6.2';
+const VERSION='2.7';
 const SAVE_KEY='pethotel_v4'; // 2.1 — несколько отелей; сохранение 2.0 (pethotel_v3) переносится и не удаляется
 const OLD_KEY='pethotel_v3';
 const PET={
@@ -474,7 +499,7 @@ const KINDS={
     },
     help:{food:300,wash:500,groom:500,walk:700,play:600},
     manager:5000},
-  rodents:{name:'Пушистый дворик',icon:'🐹',pets:['rabbit','hamster','parrot'],mult:1.5,fun:['wheel','talk'],
+  rodents:{name:'Пушистый дворик',icon:'🐹',phone:'☎️',car:limoSvg(),pets:['rabbit','hamster','parrot'],mult:1.5,fun:['wheel','talk'],
     svc:{
       food:{icon:'🥕',name:'Покормить',short:'Покормить',time:4,fx:['🥕','😋','🌾']},
       clean:{icon:'🧹',name:'Почистить клетку',short:'Почистить',time:6,fx:['🧹','✨','🧹'],eq:'cage'},
@@ -773,9 +798,10 @@ function tabsHTML(){
 }
 function phoneCard(){
   const adm=S.staff.phone;
-  if(!S.call)return `<div class="card phone idle"><div class="ring">📞</div><div><b>Телефон молчит</b><small>${adm?'☎️ Администратор на связи':'Скоро кто-нибудь позвонит…'}</small></div></div>`;
+  const ph=K.phone||'📞';
+  if(!S.call)return `<div class="card phone idle"><div class="ring">${ph}</div><div><b>Телефон молчит</b><small>${adm?'☎️ Администратор на связи':'Скоро кто-нибудь позвонит…'}</small></div></div>`;
   const g=S.call.pet;
-  return `<div class="card phone calling" data-act="call"><div class="ring">📞</div><div style="flex:1"><b>Входящий звонок!</b><small>Звонят насчёт ${PET[g.type].whose} по кличке ${g.name} · ${adm?'☎️ администратор берёт трубку…':'тапни, чтобы ответить'}</small><div class="bar ttl"><i data-w="ttl"></i></div></div></div>`;
+  return `<div class="card phone calling" data-act="call"><div class="ring">${ph}</div><div style="flex:1"><b>Входящий звонок!</b><small>Звонят насчёт ${PET[g.type].whose} по кличке ${g.name} · ${adm?'☎️ администратор берёт трубку…':'тапни, чтобы ответить'}</small><div class="bar ttl"><i data-w="ttl"></i></div></div></div>`;
 }
 function queueHTML(){
   if(!S.staff.phone)return '';
@@ -788,7 +814,7 @@ function lobbyHTML(){
   const L=S.pets.filter(p=>p.state==='coming'||p.state==='arrived');
   if(!L.length)return `<div class="lobby"><div class="empty-note">Здесь появятся гости, когда вы примете звонок.</div></div>`;
   return `<div class="lobby">${L.map(p=>p.state==='coming'
-    ?`<div class="guest coming" title="${p.name} едет"><div class="av">${face(p)}<span class="car">🚗</span></div><div><b>${p.name}</b><small>едет · <span data-x="eta:${p.id}"></span> с</small></div></div>`
+    ?`<div class="guest coming" title="${p.name} едет"><div class="av ride"><span class="rider">${face(p)}</span><span class="car">${K.car||'🚗'}</span></div><div><b>${p.name}</b><small>едет · <span data-x="eta:${p.id}"></span> с</small></div></div>`
     :guestReadyHTML(p)).join('')}</div>`;
 }
 function guestReadyHTML(p){ // карточка в приёмной: видно, как идёт знакомство (ваше или администратора)
@@ -856,6 +882,7 @@ function morphEl(x,y){
   morphChildren(x,y);
 }
 function render(){
+  const kc='k-'+S.kind;if(document.body.className!==kc)document.body.className=kc;
   morph($('app'),`<div class="head">${tabsHTML()}
     <div class="top">
       <div class="pill"><span data-x="money"></span> 💰<small data-x="perMin"></small></div>
