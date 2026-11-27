@@ -150,6 +150,11 @@ h3{margin:14px 2px 6px;font-size:12px;color:var(--muted);text-transform:uppercas
 .empty-note{height:86px;box-sizing:border-box;display:flex;align-items:center}
 .acts{min-height:var(--acts-h,78px);align-content:start}
 .pickbtn{height:var(--acts-h,78px);box-sizing:border-box}
+.ttbox{height:var(--acts-h,78px);margin-top:8px;box-sizing:border-box;border-radius:11px;background:#fff7ec;box-shadow:inset 0 0 0 2px #ffd9b8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 10px;text-align:center}
+.ttbox b{font-size:13px;color:#b4692e}
+.ttbox span{font-size:12px;font-weight:700;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ttbox .bar{width:100%;height:6px;margin-top:3px}
+.ttbox .bar i{background:var(--accent)}
 .rooms{grid-auto-rows:1fr}
 .rcard{min-height:192px;box-sizing:border-box}
 .a-clean .pet{animation:wiggle .4s infinite}
@@ -233,6 +238,33 @@ h3{margin:14px 2px 6px;font-size:12px;color:var(--muted);text-transform:uppercas
 @keyframes fl{to{transform:translate(-50%,-160%);opacity:0}}
 #toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 14px;border-radius:12px;font-size:14px;z-index:25;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;text-align:center}
 #toast.show{opacity:1}
+/* ---- Заставка ---- */
+#intro{position:fixed;inset:0;z-index:50;background:radial-gradient(circle at 50% 35%,#ffe3c4,#ffb98a 55%,#f08a5d);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;transition:opacity .5s;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom)}
+#intro.out{opacity:0;pointer-events:none}
+#intro .paws{position:absolute;inset:0;pointer-events:none}
+#intro .paws span{position:absolute;font-size:22px;opacity:.18;animation:pawup 9s linear infinite}
+@keyframes pawup{from{transform:translateY(110vh) rotate(0)}to{transform:translateY(-20vh) rotate(40deg)}}
+#intro .logo{font-size:34px;font-weight:900;color:#fff;text-shadow:0 3px 0 #c9622f,0 6px 14px #0003;text-align:center;line-height:1.05;letter-spacing:.01em;animation:logoin .8s ease-out both}
+#intro .logo small{display:block;font-size:14px;font-weight:700;margin-top:6px;text-shadow:0 1px 0 #c9622f;opacity:.95}
+@keyframes logoin{from{transform:translateY(-30px) scale(.8);opacity:0}}
+#intro .stage{position:relative;width:min(78vw,300px);height:min(78vw,300px);margin:22px 0 8px}
+#intro .slide{position:absolute;inset:0;opacity:0;transition:opacity .7s}
+#intro .slide.on{opacity:1}
+#intro .disc{position:absolute;inset:8%;border-radius:50%;background:#fff8ef;box-shadow:0 10px 0 #e0875a,0 18px 30px #0003;overflow:hidden}
+#intro .slide.on .disc .hero{animation:kb 2.6s ease-out both}
+#intro .hero{position:absolute;left:50%;top:54%;font-size:min(42vw,160px);line-height:1;transform:translate(-50%,-50%)}
+#intro .hero.two{display:flex;gap:2px;font-size:min(30vw,112px)}
+@keyframes kb{from{transform:translate(-50%,-44%) scale(.86)}to{transform:translate(-50%,-50%) scale(1.04)}}
+#intro .prop{position:absolute;font-size:min(11vw,42px);animation:bob 1.6s ease-in-out infinite}
+#intro .cap{position:absolute;left:0;right:0;bottom:-6px;text-align:center}
+#intro .cap span{display:inline-block;background:#fff;color:#b4562a;font-weight:900;font-size:15px;padding:7px 14px;border-radius:999px;box-shadow:0 3px 0 #e0875a}
+#intro .dots{display:flex;gap:6px;margin-top:14px}
+#intro .dots i{width:7px;height:7px;border-radius:50%;background:#fff8;transition:all .3s}
+#intro .dots i.on{background:#fff;width:18px;border-radius:4px}
+#intro .tap{margin-top:28px;color:#fff;font-weight:900;font-size:18px;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 2px 0 #c9622f;animation:blink 1.4s ease-in-out infinite}
+@keyframes blink{50%{opacity:.35;transform:scale(.96)}}
+@keyframes bob{50%{transform:translateY(-6px) rotate(-6deg)}}
+#intro .ver{position:absolute;bottom:calc(10px + env(safe-area-inset-bottom));color:#fff;opacity:.7;font-size:11px;font-weight:700}
 </style>
 </head>
 <body>
@@ -242,6 +274,7 @@ h3{margin:14px 2px 6px;font-size:12px;color:var(--muted);text-transform:uppercas
 <div id="sheet"><div class="in" id="sheetIn"></div></div>
 <div id="fx"></div>
 <div id="toast"></div>
+<div id="intro" data-act="intro"></div>
 <script>
 'use strict';
 // ---------- Модельки питомцев (SVG, размер = font-size) ----------
@@ -318,7 +351,7 @@ function parrotSvg(){
 }
 
 // ---------- Данные ----------
-const VERSION='2.2.2';
+const VERSION='2.3';
 const SAVE_KEY='pethotel_v4'; // 2.1 — несколько отелей; сохранение 2.0 (pethotel_v3) переносится и не удаляется
 const OLD_KEY='pethotel_v3';
 const PET={
@@ -510,7 +543,7 @@ function checkIn(id,auto){ // заселяем с комплексом по вы
   p.price=P.price;p.hidden=hiddenNeeds(p);
   const total=P.stay*rnd(0.9,1.1);
   p.reqs=list.map(svc=>({svc,done:false,miss:false}));p.cd={};p.acts=[];list.forEach(k=>p.cd[k]=S.t); // cd[k] — с какого момента процедура доступна
-  Object.assign(p,{state:'room',room:r,tariff:tk,stay:total,total,mood:meetMood(p)});p.meetAct=null;
+  Object.assign(p,{state:'checkin',tt:{left:CHECK_T,total:CHECK_T},room:r,tariff:tk,stay:total,total,mood:meetMood(p)});p.meetAct=null; // сначала оформляем заселение в номере
   if(sheet&&sheet.type==='meet'&&sheet.k===id)closeSheet();
   toast((auto?'🛎️ Администратор: ':'')+`🏨 ${p.name} заселился в номер ${r+1}`);
   if(!BG)setTimeout(()=>toastOnce('care','👀 Выбирайте сами, что делать: каждая процедура поднимает настроение'),2900);
@@ -547,8 +580,12 @@ function incomeRate(H){ // монет в секунду
   const L=(H.log||[]).filter(e=>e[0]>H.t-RATE_WIN);
   return L.reduce((a,e)=>a+e[1],0)/Math.min(RATE_WIN,Math.max(120,H.t));
 }
-function pickup(id){
+const CHECK_T=2.5; // сколько секунд идёт оформление заселения и выселения
+function pickup(id){ // начинаем выселение: подпись и полоска в номере, потом оплата
   const p=pet(id);if(!p||p.state!=='pickup')return;
+  p.state='checkout';p.tt={left:CHECK_T,total:CHECK_T};
+}
+function finishPickup(p){
   const T=TAR[p.tariff],price=p.price||T.price;
   const stars=p.mood>=85?5:p.mood>=65?4:p.mood>=45?3:p.mood>=25?2:1;
   let amt=price*(0.5+p.mood/100*0.7);if(stars===5)amt*=1.2;
@@ -579,7 +616,7 @@ function tick(dt){
         if(k==='check'){const f=(p.needs||[]).map(x=>NEED[x][p.type].toLowerCase());if(f.length)p.react='Осмотр: '+f.join(', ')+' 📝'}
         if(open){renderSheet();const bp=$('bigpet');if(bp){bp.classList.add('react');setTimeout(()=>bp.classList.remove('react'),1000)}floatAt('bigpet',MEET[k].fx,'#e05a8a')}
       }}
-      else if(S.staff.desk&&S.t-(p.since||0)>=3&&!open&&(p.adm||deskBusy()<S.staff.desk)){ // администратор сам знакомится, потом заселяет
+      else if(S.staff.desk&&!open&&(p.adm||deskBusy()<S.staff.desk)){ // администратор сам знакомится, потом заселяет
         p.adm=true;
         const next=Object.keys(MEET).find(k=>!p.did.includes(k));
         if(next)startMeet(p,next);
@@ -598,7 +635,11 @@ function tick(dt){
         p.mood=Math.max(0,p.mood-15*(p.hidden||[]).length); // не заметили нужду на осмотре
         p.state='pickup';p.since=S.t;if(!S.staff.out)toastOnce('pick',`🚗 За ${p.name} приехали — нажми «Отдать хозяину»`);
       }
-    } else if(p.state==='pickup'){p.mood=Math.max(0,p.mood-0.4*dt);if(S.staff.out&&S.t-(p.since||0)>=2)pickup(p.id)}
+    } else if(p.state==='pickup'){p.mood=Math.max(0,p.mood-0.4*dt);if(S.staff.out)pickup(p.id)} // сотрудник выдачи сразу начинает выселение
+    else if(p.state==='checkin'||p.state==='checkout'){
+      p.tt.left-=dt;
+      if(p.tt.left<=0){if(p.state==='checkin'){p.state='room';p.tt=null}else finishPickup(p)}
+    }
   }
 }
 
@@ -673,7 +714,7 @@ function roomHTML(i){
     const cls=doing?'doing':done===all.length?'done':cd?'cd':meBusy||helperFree?'':'can'; // можно делать прямо сейчас — яркая кнопка
     return `<button class="svc ${cls}" data-act="svc" data-k="${p.id}:${k}">${S.help[k]?'<span class="help">🧑</span>':''}<span class="cnt">${done}/${all.length}</span>${SVC[k].icon}<small>${doing&&act.help?'помощник':cd?'отдыхает':svcName(k,p)}</small>${doing?`<i class="prog" data-w="act:${p.id}:${k}"></i>`:''}</button>`;
   }).join('');
-  const pick=p.state==='pickup';
+  const pick=p.state==='pickup'||p.state==='checkout',trans=p.state==='checkin'||p.state==='checkout';
   return `<div class="rcard ${pick?'pickup':''}" id="room-${i}">
     <div class="rhead"><span>Номер ${i+1}</span><span class="tar" title="${T.name}">${p.reqs.length?[...new Set(p.reqs.map(r=>r.svc))].map(k=>SVC[k].icon).join(''):T.icon}</span></div>
     <div class="rbody"><div class="petbox ${anim}"><div class="bed"></div><div class="bowl">🥣</div><div class="pet">${PET[p.type].svg}</div><div class="fx">${fxs}</div></div>
@@ -681,7 +722,8 @@ function roomHTML(i){
         <div class="lbl"><span>😊</span><span data-x="mood:${p.id}"></span></div><div class="bar"><i data-w="mood:${p.id}"></i></div>
         <div class="lbl"><span>${pick?'🚗':'⏱'}</span><span data-x="left:${p.id}"></span></div><div class="bar"><i data-w="stay:${p.id}" style="background:#9fb7e8"></i></div>
       </div></div>
-    ${pick?`<button class="pickbtn" data-act="pickup" data-k="${p.id}">🚗 Отдать</button>`:`<div class="acts">${btns}</div>`}
+    ${trans?`<div class="ttbox"><b>${p.state==='checkin'?'🛎️ Заселение':'🚗 Выселение'}</b><span>«${p.name}»</span><div class="bar"><i data-w="tt:${p.id}"></i></div></div>`
+      :pick?`<button class="pickbtn" data-act="pickup" data-k="${p.id}">🚗 Отдать</button>`:`<div class="acts">${btns}</div>`}
   </div>`;
 }
 // Аккуратное обновление DOM: меняем только то, что действительно изменилось.
@@ -729,7 +771,8 @@ function update(){ // каждый кадр: только цифры и поло
     if(k==='ttl')w=S.call?S.call.ttl/S.call.max*100:0;
     else{const p=pet(+id);if(!p)continue;
       if(k==='mood'){w=p.mood;el.style.background=p.mood>60?'var(--accent2)':p.mood>30?'var(--warn)':'var(--bad)'}
-      else if(k==='stay')w=p.state==='pickup'?100:(1-p.stay/p.total)*100;
+      else if(k==='stay')w=p.state==='pickup'||p.state==='checkout'?100:(1-p.stay/p.total)*100;
+      else if(k==='tt')w=p.tt?(1-p.tt.left/p.tt.total)*100:100;
       else if(k==='act'){const a=p.acts.find(a=>a.svc===x);w=a?(1-a.left/a.total)*100:0}
       else if(k==='meet')w=p.meetAct?(1-p.meetAct.left/p.meetAct.total)*100:100;}
     el.style.width=Math.max(0,Math.min(100,w)).toFixed(1)+'%';
@@ -741,7 +784,7 @@ function update(){ // каждый кадр: только цифры и поло
     else{const p=pet(+id);if(!p)continue;
       if(k==='eta')t=Math.max(1,Math.ceil(p.eta));
       else if(k==='mood')t=Math.round(p.mood)+'%';
-      else if(k==='left')t=p.state==='pickup'?'сейчас':Math.max(0,Math.ceil(p.stay))+' с';}
+      else if(k==='left')t=p.state==='pickup'||p.state==='checkout'?'сейчас':Math.max(0,Math.ceil(p.stay))+' с';}
     if(el.textContent!==String(t))el.textContent=t;
   }
 }
@@ -885,6 +928,7 @@ function toastOnce(key,m){if(BG||S.tips[key])return;S.tips[key]=1;toast(m)}
 document.addEventListener('pointerdown',e=>{
   const el=e.target.closest('[data-act]');if(!el||el.disabled)return;
   const a=el.dataset.act,k=el.dataset.k;
+  if(a==='intro'){e.preventDefault();startGame();return}
   if(a==='call')openSheet({type:'call'});
   else if(a==='yes')answer(true);
   else if(a==='no')answer(false);
@@ -911,7 +955,7 @@ document.addEventListener('pointerdown',e=>{
   else if(a==='reset'){if(confirm('Начать игру заново? Все отели и звёзды будут сброшены.')){G=freshG();G.hotels.forEach(attach);useHotel(G.hotels[0]);save();closeSheet();dirty=true}}
 });
 let hiddenAt=0;
-document.addEventListener('visibilitychange',()=>{if(document.hidden){save();hiddenAt=Date.now()}else{last=performance.now();if(hiddenAt){awardOffline((Date.now()-hiddenAt)/1000);hiddenAt=0}}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){save();hiddenAt=Date.now()}else{last=performance.now();if(hiddenAt){if(!introOn)awardOffline((Date.now()-hiddenAt)/1000);hiddenAt=0}}});
 window.addEventListener('pagehide',()=>save());
 
 // ---------- Офлайн-доход ----------
@@ -950,6 +994,7 @@ function bgTick(H,dt){
 // Пока игра закрыта, время стоит: гости ждут вас, никто не грустит.
 let last=performance.now(),saveAcc=0,sheetAcc=0;
 function loop(now){
+  if(introOn){last=now;requestAnimationFrame(loop);return} // пока заставка — время стоит
   const dt=Math.min(1,Math.max(0,(now-last)/1000));last=now;
   for(let r=dt;r>0;r-=0.1)tick(Math.min(0.1,r));
   for(const H of G.hotels)if(H!==S)bgTick(H,dt);
@@ -959,9 +1004,44 @@ function loop(now){
   saveAcc+=dt;if(saveAcc>=3){saveAcc=0;save()}
   requestAnimationFrame(loop);
 }
+// ---------- Заставка при запуске ----------
+// Нарезка сцен из жизни отеля, по тапу — в игру. Пока заставка на экране, время в игре стоит.
+let introOn=true;
+const awaySec=G.saved?(Date.now()-G.saved)/1000:0; // офлайн считаем по моменту запуска, а не по закрытию заставки
+const SCENES=[
+  {hero:PET.cat.svg,props:[['📞',8,14],['💬',72,10]],cap:'Принимаем звонки'},
+  {hero:PET.dog.svg,props:[['🩺',6,60],['🎾',76,62]],cap:'Знакомимся с гостями'},
+  {hero:PET.cat.svg+PET.dog.svg,two:true,props:[['🛁',6,12],['🍖',78,14]],cap:'Кормим, моем, стрижём'},
+  {hero:PET.dog.svg,props:[['🛎️',8,12],['🧑',76,58]],cap:'Нанимаем помощников'},
+  {hero:PET.rabbit.svg,props:[['🥕',8,58],['⭐',76,10]],cap:'Открываем новые отели'},
+  {hero:PET.hamster.svg+PET.parrot.svg,two:true,props:[['🎡',6,12],['💬',78,12]],cap:'Хомяки, кролики, попугаи…'},
+];
+function showIntro(){
+  const el=$('intro');
+  const paws=[...Array(10)].map((_,i)=>`<span style="left:${(i*10+rnd(0,6)).toFixed(0)}%;animation-delay:-${rnd(0,9).toFixed(1)}s;animation-duration:${rnd(7,12).toFixed(1)}s">🐾</span>`).join('');
+  el.innerHTML=`<div class="paws">${paws}</div>
+    <div class="logo">Хвостатый отель<small>гостиница для питомцев</small></div>
+    <div class="stage">${SCENES.map((sc,i)=>`<div class="slide ${i?'':'on'}"><div class="disc"><div class="hero ${sc.two?'two':''}">${sc.hero}</div>${sc.props.map(([e,x,y],j)=>`<span class="prop" style="left:${x}%;top:${y}%;animation-delay:${j*.4}s">${e}</span>`).join('')}</div><div class="cap"><span>${sc.cap}</span></div></div>`).join('')}</div>
+    <div class="dots">${SCENES.map((_,i)=>`<i class="${i?'':'on'}"></i>`).join('')}</div>
+    <div class="tap">Тап для начала</div>
+    <div class="ver">версия ${VERSION}</div>`;
+  let i=0;
+  const t=setInterval(()=>{
+    if(!introOn){clearInterval(t);return}
+    i=(i+1)%SCENES.length;
+    el.querySelectorAll('.slide').forEach((s,j)=>s.classList.toggle('on',j===i));
+    el.querySelectorAll('.dots i').forEach((d,j)=>d.classList.toggle('on',j===i));
+  },2600);
+}
+function startGame(){
+  if(!introOn)return;
+  introOn=false;last=performance.now();
+  const el=$('intro');el.classList.add('out');setTimeout(()=>el.remove(),600);
+  toastOnce('start','👋 Добро пожаловать в «Хвостатый отель»! Ждём первого звонка…');
+  if(awaySec)awardOffline(awaySec);
+}
 render();
-toastOnce('start','👋 Добро пожаловать в «Хвостатый отель»! Ждём первого звонка…');
-if(G.saved)awardOffline((Date.now()-G.saved)/1000);
+showIntro();
 requestAnimationFrame(loop);
 if('serviceWorker' in navigator){
   // как только встала новая версия — один раз перезагружаемся, чтобы игрок сразу её увидел
