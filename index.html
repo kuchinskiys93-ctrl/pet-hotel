@@ -248,10 +248,10 @@ h3{margin:14px 2px 6px;font-size:12px;color:var(--muted);text-transform:uppercas
 #intro .logo small{display:block;font-size:14px;font-weight:700;margin-top:6px;text-shadow:0 1px 0 #c9622f;opacity:.95}
 @keyframes logoin{from{transform:translateY(-30px) scale(.8);opacity:0}}
 #intro .stage{position:relative;width:min(78vw,300px);height:min(78vw,300px);margin:22px 0 8px}
-#intro .slide{position:absolute;inset:0;opacity:0;transition:opacity .7s}
+#intro .slide{position:absolute;inset:0;opacity:0;transition:opacity .5s}
 #intro .slide.on{opacity:1}
 #intro .disc{position:absolute;inset:8%;border-radius:50%;background:#fff8ef;box-shadow:0 10px 0 #e0875a,0 18px 30px #0003;overflow:hidden}
-#intro .slide.on .disc .hero{animation:kb 2.6s ease-out both}
+#intro .slide.on .disc .hero{animation:kb 2s ease-out both}
 #intro .hero{position:absolute;left:50%;top:54%;font-size:min(42vw,160px);line-height:1;transform:translate(-50%,-50%)}
 #intro .hero.two{display:flex;gap:2px;font-size:min(30vw,112px)}
 @keyframes kb{from{transform:translate(-50%,-44%) scale(.86)}to{transform:translate(-50%,-50%) scale(1.04)}}
@@ -351,7 +351,7 @@ function parrotSvg(){
 }
 
 // ---------- Данные ----------
-const VERSION='2.3';
+const VERSION='2.3.1';
 const SAVE_KEY='pethotel_v4'; // 2.1 — несколько отелей; сохранение 2.0 (pethotel_v3) переносится и не удаляется
 const OLD_KEY='pethotel_v3';
 const PET={
@@ -1007,6 +1007,7 @@ function loop(now){
 // ---------- Заставка при запуске ----------
 // Нарезка сцен из жизни отеля, по тапу — в игру. Пока заставка на экране, время в игре стоит.
 let introOn=true;
+const INTRO_SLIDE=2; // секунд на каждую сцену заставки
 const awaySec=G.saved?(Date.now()-G.saved)/1000:0; // офлайн считаем по моменту запуска, а не по закрытию заставки
 const SCENES=[
   {hero:PET.cat.svg,props:[['📞',8,14],['💬',72,10]],cap:'Принимаем звонки'},
@@ -1028,10 +1029,11 @@ function showIntro(){
   let i=0;
   const t=setInterval(()=>{
     if(!introOn){clearInterval(t);return}
-    i=(i+1)%SCENES.length;
+    i++;
+    if(i>=SCENES.length){clearInterval(t);startGame();return} // круг прошёл — сами открываем игру
     el.querySelectorAll('.slide').forEach((s,j)=>s.classList.toggle('on',j===i));
     el.querySelectorAll('.dots i').forEach((d,j)=>d.classList.toggle('on',j===i));
-  },2600);
+  },INTRO_SLIDE*1000);
 }
 function startGame(){
   if(!introOn)return;
