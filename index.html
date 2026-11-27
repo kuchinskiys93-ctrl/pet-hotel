@@ -392,7 +392,7 @@ function face(g){
 }
 
 // ---------- Данные ----------
-const VERSION='2.5';
+const VERSION='2.5.1';
 const SAVE_KEY='pethotel_v4'; // 2.1 — несколько отелей; сохранение 2.0 (pethotel_v3) переносится и не удаляется
 const OLD_KEY='pethotel_v3';
 const PET={
@@ -909,7 +909,8 @@ function shopSheet(){
     }).join('');
   }
   else if(shopTab==='staff'){
-    body=Object.entries(STAFF).map(([k,st])=>{
+    const am=autoMissing(S);
+    body=`<div class="prest"><b>🌙 Доход, пока игра закрыта</b><small>${S.manager?`С управляющим — до ${OFF_MAX_H} ч, половина обычного дохода.`:am.length?`Наймите всех помощников и весь персонал — и отель будет зарабатывать до ${OFF_AUTO_MIN} мин, пока вас нет. Осталось: ${am.join(', ')}.`:`✅ Вся автоматизация куплена: отель зарабатывает до ${OFF_AUTO_MIN} мин, пока вас нет (половина обычного дохода). С управляющим — до ${OFF_MAX_H} ч.`}</small></div>`+Object.entries(STAFF).map(([k,st])=>{
       if(k==='desk'){const l=S.staff.desk||0;
         return `<div class="scard"><div class="sh"><span class="ic">${st.icon}</span>${st.name}</div>${up('Уровень',l,DESK_MAX,DESK_COST[l]||0,'staff',k,l>=DESK_MAX?`Ведёт ${l} гостей одновременно`:l?`Гостей одновременно: ${l} → ${l+1}`:st.desc,'Нанять')}</div>`}
       return `<div class="scard"><div class="sh"><span class="ic">${st.icon}</span>${st.name}</div>${up(S.staff[k]?'Нанят':'Не нанят',S.staff[k]?1:0,1,st.cost,'staff',k,st.desc,'Нанять')}</div>`;
@@ -1041,24 +1042,36 @@ window.addEventListener('pagehide',()=>save());
 // ---------- Офлайн-доход ----------
 // Пока игра закрыта, время в отелях стоит, но отели с управляющим зарабатывают:
 // половина обычного дохода (по последним 10 минутам), максимум за 8 часов.
+// Без управляющего, но со всей автоматизацией (все помощники и весь персонал) — офлайн до 30 минут
+const OFF_AUTO_MIN=30;
+function autoMissing(H){
+  const k=KINDS[H.kind],m=[];
+  for(const x of Object.keys(k.svc))if(!H.help[x])m.push('🧑 помощник: '+k.svc[x].name.toLowerCase());
+  if(!H.staff.phone)m.push('☎️ администратор на телефоне');
+  if(!H.staff.desk)m.push('🛎️ администратор на ресепшене');
+  if(!H.staff.out)m.push('🚗 сотрудник выдачи');
+  return m;
+}
+const offCap=H=>H.manager?OFF_MAX_H*3600:autoMissing(H).length?0:OFF_AUTO_MIN*60; // секунд
 function awardOffline(sec){
   if(!(sec>=60))return;
-  const cap=Math.min(sec,OFF_MAX_H*3600),rows=[];let total=0;
+  const rows=[];let total=0;
   for(const H of G.hotels){
-    if(!H.manager)continue;
+    const cap=Math.min(sec,offCap(H));if(!cap)continue;
     const amt=Math.floor(incomeRate(H)*cap*OFF_SHARE);
-    if(amt>0){rows.push([H,amt]);total+=amt}
+    if(amt>0){rows.push([H,amt,cap]);total+=amt}
   }
   if(!total)return;
   G.money+=total;for(const [H,a] of rows)H.earned+=a;
   save();dirty=true;
-  openSheet({type:'away',rows,total,sec,cap});
+  openSheet({type:'away',rows,total,sec});
 }
+const durTxt=sec=>{const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60);return (h?h+' ч ':'')+m+' мин'};
 function awaySheet(){
   const d=sheet,h=Math.floor(d.sec/3600),m=Math.floor(d.sec%3600/60);
   return `<div class="sh-title">🌙 Пока вас не было</div>
-    <div class="sh-sub">Вас не было ${h?h+' ч ':''}${m} мин${d.sec>d.cap?` · считаем максимум ${OFF_MAX_H} ч`:''}. Управляющие присмотрели за отелями.</div>
-    ${d.rows.map(([H,a])=>`<div class="row"><span class="ic">${KINDS[H.kind].icon}</span><div><b>${KINDS[H.kind].name}</b><small>👔 управляющий</small></div><b style="color:var(--accent2)">+${fmt(a)} 💰</b></div>`).join('')}
+    <div class="sh-sub">Вас не было ${h?h+' ч ':''}${m} мин. Персонал присмотрел за отелями.</div>
+    ${d.rows.map(([H,a,cap])=>`<div class="row"><span class="ic">${KINDS[H.kind].icon}</span><div><b>${KINDS[H.kind].name}</b><small>${H.manager?'👔 управляющий':'🧑 помощники и персонал'} · ${cap<d.sec?'посчитано '+durTxt(cap)+' (максимум)':durTxt(cap)}</small></div><b style="color:var(--accent2)">+${fmt(a)} 💰</b></div>`).join('')}
     <button class="bigbtn green" data-act="close" style="margin-top:12px;width:100%">Забрать +${fmt(d.total)} 💰</button>`;
 }
 
