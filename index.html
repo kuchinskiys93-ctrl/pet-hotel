@@ -110,6 +110,31 @@ h3{margin:14px 2px 6px;font-size:12px;color:var(--muted);text-transform:uppercas
 .pickbtn{width:100%;margin-top:10px;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:12px;font-size:16px;font-weight:800;font-family:inherit;cursor:pointer;animation:pulse 1.2s infinite}
 @keyframes idle{0%,100%{transform:scale(1,1)}50%{transform:scale(1.03,.97)}}
 /* анимации ухода */
+/* ---- Компактные номера: по 2 в ряд ---- */
+.rooms{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rcard{background:#fff;border-radius:16px;padding:8px;display:flex;flex-direction:column}
+.rhead{font-size:11px}
+.rhead .tar{padding:1px 6px;font-size:13px}
+.rbody{flex-direction:row;gap:6px;margin-top:4px;align-items:center}
+.petbox{width:54px;height:52px}
+.petbox .bed{height:17px;left:3px;right:3px;bottom:1px}
+.petbox .bowl{font-size:12px;right:-5px}
+.petbox .pet{font-size:40px;left:7px;bottom:7px}
+.petbox .fx{font-size:14px;top:-6px}
+.rinfo{flex:1;min-width:0}
+.rinfo .nm{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lbl{font-size:11px;margin:3px 0 2px;color:var(--ink);font-weight:700}
+.rinfo .bar{height:5px}
+.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:8px}
+.svc{min-width:0;padding:7px 0 5px;font-size:20px;border-radius:11px;line-height:1.1}
+.svc small{display:none}
+.svc .cnt{right:3px;top:1px;font-size:9px}
+.svc .help{left:2px;top:0;font-size:9px}
+.svc.can{animation:pulse 1.2s infinite}
+.pickbtn{margin-top:8px;padding:10px 4px;font-size:14px}
+.rcard.free .rbody{flex:1;justify-content:center}
+.rcard.free .rinfo{text-align:center;font-size:12px}
+.rcard.add{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;min-height:120px;font-size:12px}
 .a-food .pet{animation:chomp .35s infinite}
 @keyframes chomp{50%{transform:translateY(4px) scale(1.04,.94)}}
 .a-wash .pet{animation:wiggle .4s infinite}
@@ -219,7 +244,7 @@ function spitzSvg(){
 }
 
 // ---------- Данные ----------
-const VERSION='2.0.6';
+const VERSION='2.0.7';
 const SAVE_KEY='pethotel_v3'; // 2.0 — новая игра; сохранения 1.x не трогаем
 const PET={
   cat:{svg:catSvg(),kind:'кот',whose:'кота',names:['Мурзик','Уголёк','Ночка','Багира','Тень','Маркиз','Луна','Пантера','Сажа','Черныш'],
@@ -261,7 +286,7 @@ const STAFF={
   desk:{icon:'🛎️',name:'Администратор на ресепшене',desc:'Сам знакомится с приехавшими и заселяет по пожеланиям',cost:600},
   out:{icon:'🚗',name:'Сотрудник выдачи',desc:'Сам отдаёт питомца хозяину, когда за ним приехали',cost:450},
 };
-const ROOM_COST=[0,0,200,450,900,1800]; const MAX_ROOMS=6, MAX_LVL=10;
+const ROOM_COST=[0,0,200,450,900,1800,3000,4500]; const MAX_ROOMS=8, MAX_LVL=10;
 
 function fresh(){
   return {v:3,money:60,reviews:[5,5,4],rooms:2,eq:{bath:false,groom:false,yard:false,toys:false},
@@ -477,8 +502,8 @@ function guestReadyHTML(p){ // карточка в приёмной: видно,
 }
 function roomHTML(i){
   const p=S.pets.find(x=>x.room===i);
-  if(!p)return `<div class="rcard free" id="room-${i}"><div class="rhead"><span>Номер ${i+1}</span><span>свободен</span></div>
-    <div class="rbody"><div class="petbox"><div class="bed"></div><div class="bowl">🥣</div></div><div class="rinfo" style="font-size:13px">Чистая лежанка и миска ждут гостя</div></div></div>`;
+  if(!p)return `<div class="rcard free" id="room-${i}"><div class="rhead"><span>Номер ${i+1}</span></div>
+    <div class="rbody"><div class="petbox"><div class="bed"></div><div class="bowl">🥣</div></div><div class="rinfo">свободен</div></div></div>`;
   const T=TAR[p.tariff],kinds=Object.keys(SVC).filter(k=>p.reqs.some(r=>r.svc===k)); // всегда в одном порядке: еда, мытьё, стрижка, прогулка, игра
   const a0=p.acts[0];
   const anim=a0?'a-'+a0.svc:'';
@@ -493,13 +518,13 @@ function roomHTML(i){
   }).join('');
   const pick=p.state==='pickup';
   return `<div class="rcard ${pick?'pickup':''}" id="room-${i}">
-    <div class="rhead"><span>Номер ${i+1}</span><span class="tar">${T.icon} ${T.name}</span></div>
+    <div class="rhead"><span>Номер ${i+1}</span><span class="tar" title="${T.name}">${p.reqs.length?[...new Set(p.reqs.map(r=>r.svc))].map(k=>SVC[k].icon).join(''):T.icon}</span></div>
     <div class="rbody"><div class="petbox ${anim}" data-act="petinfo" data-k="${p.id}"><div class="bed"></div><div class="bowl">🥣</div><div class="pet">${PET[p.type].svg}</div><div class="fx">${fxs}</div></div>
-      <div class="rinfo"><div class="nm">${p.name} <small>${PET[p.type].kind}, ${p.age} ${years(p.age)}</small></div>
-        <div class="lbl"><span>Настроение</span><span data-x="mood:${p.id}"></span></div><div class="bar"><i data-w="mood:${p.id}"></i></div>
-        <div class="lbl"><span>${pick?'Хозяин ждёт':'До отъезда'}</span><span data-x="left:${p.id}"></span></div><div class="bar"><i data-w="stay:${p.id}" style="background:#9fb7e8"></i></div>
+      <div class="rinfo"><div class="nm">${p.name}</div>
+        <div class="lbl"><span>😊</span><span data-x="mood:${p.id}"></span></div><div class="bar"><i data-w="mood:${p.id}"></i></div>
+        <div class="lbl"><span>${pick?'🚗':'⏱'}</span><span data-x="left:${p.id}"></span></div><div class="bar"><i data-w="stay:${p.id}" style="background:#9fb7e8"></i></div>
       </div></div>
-    ${pick?`<button class="pickbtn" data-act="pickup" data-k="${p.id}">🚗 Отдать хозяину</button>`:`<div class="acts">${btns}</div>`}
+    ${pick?`<button class="pickbtn" data-act="pickup" data-k="${p.id}">🚗 Отдать</button>`:`<div class="acts">${btns}</div>`}
   </div>`;
 }
 // Аккуратное обновление DOM: меняем только то, что действительно изменилось.
