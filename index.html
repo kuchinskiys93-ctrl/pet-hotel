@@ -318,7 +318,7 @@ function parrotSvg(){
 }
 
 // ---------- Данные ----------
-const VERSION='2.1';
+const VERSION='2.2';
 const SAVE_KEY='pethotel_v4'; // 2.1 — несколько отелей; сохранение 2.0 (pethotel_v3) переносится и не удаляется
 const OLD_KEY='pethotel_v3';
 const PET={
@@ -534,6 +534,13 @@ function doService(id,svc,byHelper){
   if(onCd(p,svc)){if(!byHelper)floatAt('room-'+p.room,`${p.name} отдыхает, позже 🙂`,'#8a7a70');return}
   const t=svcTime(svc);p.acts.push({svc,left:t,total:t,help:!!byHelper});
 }
+// Доход за последние 10 игровых минут — по нему считается офлайн-доход
+const RATE_WIN=600, OFF_SHARE=0.5, OFF_MAX_H=8, MGR_LVL=3;
+function logIncome(H,amt){H.log=(H.log||[]).filter(e=>e[0]>H.t-RATE_WIN);H.log.push([Math.round(H.t),amt])}
+function incomeRate(H){ // монет в секунду
+  const L=(H.log||[]).filter(e=>e[0]>H.t-RATE_WIN);
+  return L.reduce((a,e)=>a+e[1],0)/Math.min(RATE_WIN,Math.max(120,H.t));
+}
 function pickup(id){
   const p=pet(id);if(!p||p.state!=='pickup')return;
   const T=TAR[p.tariff],price=p.price||T.price;
@@ -541,7 +548,7 @@ function pickup(id){
   let amt=price*(0.5+p.mood/100*0.7);if(stars===5)amt*=1.2;
   amt*=1+STAR_BONUS*G.stars;
   amt=Math.max(1,Math.round(amt));
-  S.money+=amt;S.earned+=amt;S.served++;S.reviews.push(stars);if(S.reviews.length>20)S.reviews.shift();
+  S.money+=amt;S.earned+=amt;S.served++;logIncome(S,amt);S.reviews.push(stars);if(S.reviews.length>20)S.reviews.shift();
   floatAt('room-'+p.room,'+'+amt+' 💰','#2f9a68');floatAt('room-'+p.room,'⭐'.repeat(stars),'#e0a100',22);
   const hid=(p.hidden||[]).map(k=>NEED[k][p.type].toLowerCase());
   toast(hid.length?`😕 Хозяин заметил: ${hid.join(', ')}`:stars>=5?`💖 Хозяин ${p.name} в восторге!`:stars>=4?'😊 Хозяин доволен':'😕 Хозяин ожидал большего');
@@ -799,23 +806,28 @@ function shopSheet(){
 function prestigeMissing(){ // что ещё нужно для управляющего: всё оборудование, все помощники и весь персонал
   const m=[];
   for(const [k,e] of Object.entries(EQ))if(!S.eq[k])m.push(e.icon+' '+e.name.toLowerCase());
-  for(const k of Object.keys(SVC))if(!S.help[k])m.push('🧑 помощник: '+SVC[k].name.toLowerCase());
-  for(const [k,st] of Object.entries(STAFF))if(!S.staff[k])m.push(st.icon+' '+st.name.toLowerCase());
+  for(const k of Object.keys(SVC))if((S.help[k]||0)<MGR_LVL)m.push(`🧑 помощник «${SVC[k].name.toLowerCase()}» ур. ${MGR_LVL} (сейчас ${S.help[k]||0})`);
+  for(const [k,st] of Object.entries(STAFF)){
+    if(k==='desk'){if((S.staff.desk||0)<MGR_LVL)m.push(`${st.icon} ${st.name.toLowerCase()} ур. ${MGR_LVL} (сейчас ${S.staff.desk||0})`)}
+    else if(!S.staff[k])m.push(st.icon+' '+st.name.toLowerCase());
+  }
+  if(S.rooms<MAX_ROOMS)m.push(`🏨 все ${MAX_ROOMS} номеров (сейчас ${S.rooms})`);
   return m;
 }
 function nextKind(){const i=KIND_ORDER.indexOf(S.kind);return KIND_ORDER[i+1]||null}
 function prestigeHTML(){
-  if(S.prestiged)return `<div class="prest"><b>⭐ Престиж получен</b><small>Отель работает сам под присмотром управляющего и приносит доход в общий кошелёк.</small></div>`;
+  const inc=S.manager?`<small class="ok">💰 Доход сейчас: ~${fmt(incomeRate(S)*60)} в минуту · офлайн — половина, до ${OFF_MAX_H} ч</small>`:'';
+  if(S.prestiged)return `<div class="prest"><b>⭐ Престиж получен</b><small>Отель работает сам под присмотром управляющего и приносит доход в общий кошелёк.</small>${inc}</div>`;
   const miss=prestigeMissing();
   if(!S.manager){
-    return `<div class="prest"><b>👔 Управляющий</b><small>Ведёт отель, пока вы заняты в другом. Нужен, чтобы получить звезду престижа.</small>
+    return `<div class="prest"><b>👔 Управляющий</b><small>Ведёт отель, пока вы в другом отеле, и зарабатывает, пока игра закрыта: половина обычного дохода, до ${OFF_MAX_H} ч. Нужен для звезды престижа.</small>
       ${miss.length?`<small class="need">Сначала купите: ${miss.join(', ')}</small>`:`<small class="ok">✅ Всё готово — можно нанимать</small>`}
       <button class="buy" data-act="buy" data-what="manager" ${!miss.length&&S.money>=K.manager?'':'disabled'}>${miss.length?'🔒 ':''}${fmt(K.manager)} 💰</button></div>`;
   }
   const nk=nextKind();
-  if(!nk)return `<div class="prest"><b>🚧 Следующий отель скоро</b><small>Новые звери уже в пути. Пока этот отель приносит доход и звёзды.</small></div>`;
+  if(!nk)return `<div class="prest"><b>🚧 Следующий отель скоро</b><small>Новые звери уже в пути. Пока этот отель приносит доход.</small>${inc}</div>`;
   const N=KINDS[nk];
-  return `<div class="prest"><b>⭐ Звезда престижа и новый отель</b>
+  return `<div class="prest"><b>⭐ Звезда престижа и новый отель</b>${inc}
     <small>Откроется «${N.name}» ${N.icon}: ${N.pets.map(t=>PET[t].kind).join(', ')}. Этот отель останется вашим и будет работать сам. Каждая звезда — +10% к оплате во всех отелях.</small>
     <button class="bigbtn green" data-act="prestige">⭐ Получить звезду и открыть отель</button></div>`;
 }
@@ -840,7 +852,7 @@ function petInfoSheet(id){
 }
 function renderSheet(){
   if(!sheet)return;
-  const h=sheet.type==='call'?callSheet():sheet.type==='meet'?meetSheet(sheet.k):sheet.type==='shop'?shopSheet():sheet.type==='petinfo'?petInfoSheet(sheet.k):'';
+  const h=sheet.type==='away'?awaySheet():sheet.type==='call'?callSheet():sheet.type==='meet'?meetSheet(sheet.k):sheet.type==='shop'?shopSheet():sheet.type==='petinfo'?petInfoSheet(sheet.k):'';
   if(!h){closeSheet();return}
   const box=$('sheetIn'),st=box.scrollTop; // прокрутка окна не должна сбрасываться при обновлении
   morph(box,h);if(box.scrollTop!==st)box.scrollTop=st;
@@ -890,8 +902,33 @@ document.addEventListener('pointerdown',e=>{
   else if(a==='close')closeSheet();
   else if(a==='reset'){if(confirm('Начать игру заново? Все отели и звёзды будут сброшены.')){G=freshG();G.hotels.forEach(attach);useHotel(G.hotels[0]);save();closeSheet();dirty=true}}
 });
-document.addEventListener('visibilitychange',()=>{if(document.hidden)save();else last=performance.now()});
+let hiddenAt=0;
+document.addEventListener('visibilitychange',()=>{if(document.hidden){save();hiddenAt=Date.now()}else{last=performance.now();if(hiddenAt){awardOffline((Date.now()-hiddenAt)/1000);hiddenAt=0}}});
 window.addEventListener('pagehide',()=>save());
+
+// ---------- Офлайн-доход ----------
+// Пока игра закрыта, время в отелях стоит, но отели с управляющим зарабатывают:
+// половина обычного дохода (по последним 10 минутам), максимум за 8 часов.
+function awardOffline(sec){
+  if(!(sec>=60))return;
+  const cap=Math.min(sec,OFF_MAX_H*3600),rows=[];let total=0;
+  for(const H of G.hotels){
+    if(!H.manager)continue;
+    const amt=Math.floor(incomeRate(H)*cap*OFF_SHARE);
+    if(amt>0){rows.push([H,amt]);total+=amt}
+  }
+  if(!total)return;
+  G.money+=total;for(const [H,a] of rows)H.earned+=a;
+  save();dirty=true;
+  openSheet({type:'away',rows,total,sec,cap});
+}
+function awaySheet(){
+  const d=sheet,h=Math.floor(d.sec/3600),m=Math.floor(d.sec%3600/60);
+  return `<div class="sh-title">🌙 Пока вас не было</div>
+    <div class="sh-sub">Вас не было ${h?h+' ч ':''}${m} мин${d.sec>d.cap?` · считаем максимум ${OFF_MAX_H} ч`:''}. Управляющие присмотрели за отелями.</div>
+    ${d.rows.map(([H,a])=>`<div class="row"><span class="ic">${KINDS[H.kind].icon}</span><div><b>${KINDS[H.kind].name}</b><small>👔 управляющий</small></div><b style="color:var(--accent2)">+${fmt(a)} 💰</b></div>`).join('')}
+    <button class="bigbtn green" data-act="close" style="margin-top:12px;width:100%">Забрать +${fmt(d.total)} 💰</button>`;
+}
 
 // ---------- Цикл ----------
 // Отели, в которых вас сейчас нет, живут сами: тот же tick(), но без всплывашек и окон
@@ -916,6 +953,7 @@ function loop(now){
 }
 render();
 toastOnce('start','👋 Добро пожаловать в «Хвостатый отель»! Ждём первого звонка…');
+if(G.saved)awardOffline((Date.now()-G.saved)/1000);
 requestAnimationFrame(loop);
 if('serviceWorker' in navigator){
   // как только встала новая версия — один раз перезагружаемся, чтобы игрок сразу её увидел
