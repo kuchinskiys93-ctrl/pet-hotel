@@ -285,10 +285,13 @@ img.pv.photo{border-radius:50%;box-shadow:0 0 0 .05em #fff,0 .04em .1em #0004;ob
 .lobby .empty-note{flex:1}
 /* ---- Уровни номеров: Стандарт / Комфорт / Люкс ---- */
 .rhead .rst{font-style:normal;color:#e0a100;font-size:10px;margin-left:2px;letter-spacing:-1px}
-.rcard.lv2{background:#fbf2e6}
-.rcard.lv3{background:linear-gradient(160deg,#f4ecff,#e8dcfb)}
+.rcard.lv2{background:linear-gradient(160deg,#fff3e2,#ffe2c4)}
+.rcard.lv2:not(.pickup){box-shadow:inset 0 0 0 2px #f4c995,0 3px 0 #ecc69b}
+.rcard.lv2 .rhead .rst{color:#e08a1e}
+.rcard.lv3{background:linear-gradient(160deg,#f4ecff,#e3d4fb)}
+.rcard.lv3:not(.pickup){box-shadow:inset 0 0 0 2px #cdb4f4,0 3px 0 #cbb6ee}
 .rcard.lv3 .rhead .rst{color:#9b6fe0}
-.rcard.free.lv2{background:repeating-linear-gradient(135deg,#fbf1e4 0 12px,#f5e7d5 12px 24px)}
+.rcard.free.lv2{background:repeating-linear-gradient(135deg,#fff0dc 0 12px,#ffe2c2 12px 24px)}
 .rcard.free.lv3{background:repeating-linear-gradient(135deg,#f3ecff 0 12px,#e9dffb 12px 24px)}
 .petbox .pet{font-size:36px;left:9px;bottom:12px;z-index:1}
 .petbox .bowl{z-index:2}
@@ -426,7 +429,7 @@ function face(g){
 }
 
 // ---------- Данные ----------
-const VERSION='2.6';
+const VERSION='2.6.1';
 const SAVE_KEY='pethotel_v4'; // 2.1 — несколько отелей; сохранение 2.0 (pethotel_v3) переносится и не удаляется
 const OLD_KEY='pethotel_v3';
 const PET={
