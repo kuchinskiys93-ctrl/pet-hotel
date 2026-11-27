@@ -219,7 +219,7 @@ function spitzSvg(){
 }
 
 // ---------- Данные ----------
-const VERSION='2.0.4';
+const VERSION='2.0.5';
 const SAVE_KEY='pethotel_v3'; // 2.0 — новая игра; сохранения 1.x не трогаем
 const PET={
   cat:{svg:catSvg(),kind:'кот',whose:'кота',names:['Мурзик','Уголёк','Ночка','Багира','Тень','Маркиз','Луна','Пантера','Сажа','Черныш'],
@@ -257,8 +257,8 @@ const EQ={
 };
 const HELP={food:300,wash:500,groom:500,walk:700,play:600};
 const STAFF={
-  phone:{icon:'☎️',name:'Администратор на телефоне',desc:'Сам отвечает на звонки. Если мест нет — записывает гостя в очередь, а вы перезваниваете, когда освободится номер',cost:350},
-  desk:{icon:'🛎️',name:'Администратор на ресепшене',desc:'Сам знакомится с приехавшим и заселяет на лучший доступный тариф',cost:600},
+  phone:{icon:'☎️',name:'Администратор на телефоне',desc:'Записывает всех звонящих в очередь и сам перезванивает первому, как только освобождается номер',cost:350},
+  desk:{icon:'🛎️',name:'Администратор на ресепшене',desc:'Сам знакомится с приехавшими и заселяет по пожеланиям',cost:600},
   out:{icon:'🚗',name:'Сотрудник выдачи',desc:'Сам отдаёт питомца хозяину, когда за ним приехали',cost:450},
 };
 const ROOM_COST=[0,0,200,450,900,1800]; const MAX_ROOMS=6, MAX_LVL=10;
@@ -269,9 +269,13 @@ function fresh(){
     pets:[],queue:[],seq:1,t:0,call:null,nextCall:3,served:0,declined:0,missed:0,earned:0,tips:{}};
 }
 let S=load()||fresh();
+// администратор на ресепшене — уровень (0 = не нанят): сколько гостей обслуживает одновременно
+const DESK_COST=[600,900,1300,1800,2500], DESK_MAX=DESK_COST.length;
 if(!S.queue)S.queue=[];
+for(const k in S.help)if(typeof S.help[k]==='boolean')S.help[k]=S.help[k]?1:0; // помощник — уровень: сколько гостей одновременно
+if(S.staff&&typeof S.staff.desk==='boolean')S.staff.desk=S.staff.desk?1:0;
 if(!S.staff)S.staff={phone:false,desk:false,out:false};
-for(const p of S.pets){p.cd=p.cd||{};if(p.idleAt==null)p.idleAt=0}
+for(const p of S.pets){p.cd=p.cd||{};if(!p.acts)p.acts=p.act?[p.act]:[];delete p.act}
 
 // ---------- Утилиты ----------
 const rnd=(a,b)=>a+Math.random()*(b-a);
@@ -303,22 +307,22 @@ function answer(yes,auto){
   const c=S.call;if(!c)return;
   S.call=null;S.nextCall=callGap();if(sheet&&sheet.type==='call')closeSheet();
   const who=auto?'☎️ Администратор: ':'';
-  if(yes==='queue'||(!yes&&auto&&S.queue.length<QUEUE_MAX)){
+  if(yes==='queue'||(auto&&S.queue.length<QUEUE_MAX)){ // администратор всех записывает в очередь
     if(S.queue.length>=QUEUE_MAX){toast('📋 Очередь заполнена');S.declined++;return}
     S.queue.push({id:S.seq++,pet:c.pet,exp:S.t+QUEUE_TTL});
-    toast(who+`📋 ${c.pet.name} в очереди — позвоните, когда освободится номер`);return}
+    toast(who+`📋 ${c.pet.name} записан в очередь`);return}
   if(!yes){S.declined++;toast(who+(auto?'мест нет, вежливо отказал':'📵 Вы вежливо отказали. Позвонят ещё!'));return}
   admit(c.pet);
   toast(who+`🚗 ${c.pet.name} уже едет к вам!`);
 }
 const QUEUE_MAX=5, QUEUE_TTL=180; // сколько ждут в очереди, прежде чем найдут другой отель
-function admit(g){S.pets.push({id:S.seq++,...g,state:'coming',eta:5,room:null,tariff:null,mood:100,stay:0,total:0,reqs:[],act:null,did:[]})}
-let qOpen=false;
-function callBack(qid){ // перезваниваем гостю из очереди
+function admit(g){S.pets.push({id:S.seq++,...g,state:'coming',eta:5,room:null,tariff:null,mood:100,stay:0,total:0,reqs:[],acts:[],did:[]})}
+let qOpen=false,qWait=0;
+function callBack(qid,auto){ // перезваниваем гостю из очереди
   const i=S.queue.findIndex(q=>q.id===qid);if(i<0)return;
   if(freeSlots()<=0){toast('Сначала освободите номер 🙂');return}
   const g=S.queue.splice(i,1)[0].pet;admit(g);
-  toast(`📞 Дозвонились! ${g.name} уже едет к вам`);
+  toast((auto?'☎️ Администратор перезвонил: ':'📞 Дозвонились! ')+`${g.name} уже едет к вам`);
   if(!S.queue.length)qOpen=false;
 }
 // Что видно после осмотра (только услуги, на которые есть оборудование)
@@ -338,7 +342,7 @@ function checkIn(id,auto){ // заселяем с комплексом по вы
   const list=P.list;
   p.price=P.price;p.hidden=hiddenNeeds(p);
   const total=P.stay*rnd(0.9,1.1);
-  p.reqs=list.map(svc=>({svc,done:false,miss:false}));p.cd={};p.idleAt=S.t;
+  p.reqs=list.map(svc=>({svc,done:false,miss:false}));p.cd={};p.acts=[];list.forEach(k=>p.cd[k]=S.t); // cd[k] — с какого момента процедура доступна
   Object.assign(p,{state:'room',room:r,tariff:tk,stay:total,total,mood:meetMood(p)});p.meetAct=null;
   if(sheet&&sheet.type==='meet'&&sheet.k===id)closeSheet();
   toast((auto?'🛎️ Администратор: ':'')+`🏨 ${p.name} заселился в номер ${r+1}`);
@@ -348,19 +352,26 @@ const MOOD0=60, REPEAT_CD=12; // настроение после полного 
 const MOOD_NOMEET=35; // если не знакомились совсем
 const MEET={play:{icon:'🎾',name:'Поиграть',time:5,fx:'🎾'},check:{icon:'🩺',name:'Осмотреть',time:6,fx:'✨'},pet:{icon:'🤚',name:'Почесать',time:4,fx:'💕'}};
 const meetMood=p=>Math.round(MOOD_NOMEET+(MOOD0-MOOD_NOMEET)*p.did.length/3);
+const deskBusy=()=>S.pets.filter(p=>p.state==='arrived'&&p.adm).length;
 function startMeet(p,k){
   if(!p||p.state!=='arrived'||p.meetAct||p.did.includes(k))return false;
   const t=MEET[k].time;p.meetAct={k,left:t,total:t};return true;
 }
 const onCd=(p,svc)=>p.cd&&p.cd[svc]>S.t;
+const helperLoad=svc=>S.pets.filter(q=>q.acts&&q.acts.some(a=>a.help&&a.svc===svc)).length;
+const helperBusy=svc=>helperLoad(svc)>=(S.help[svc]||0); // уровень помощника = сколько гостей он ведёт одновременно
+const HELP_MAX=5, helpCost=k=>Math.round(HELP[k]*Math.pow(1.6,S.help[k]||0));
 const activeReq=(p,svc)=>p.reqs.find(r=>!r.done&&!r.miss&&(!svc||r.svc===svc));
 function doService(id,svc,byHelper){
   const p=pet(id);if(!p||p.state!=='room')return;
-  if(p.act){if(!byHelper)floatAt('room-'+p.room,'Уже занят 🙂','#8a7a70');return}
+  if(p.acts.some(a=>a.svc===svc))return;
+  if(!byHelper&&p.acts.some(a=>!a.help)){floatAt('room-'+p.room,'Вы уже заняты с ним 🙂','#8a7a70');return}
+  if(byHelper&&helperBusy(svc))return;
+  if(!byHelper&&S.help[svc]&&!helperBusy(svc)){floatAt('room-'+p.room,'Это сделает помощник 🧑','#8a7a70');return}
   const r=activeReq(p,svc);
   if(!r){if(!byHelper)floatAt('room-'+p.room,'Уже сделано ✅','#8a7a70');return}
   if(onCd(p,svc)){if(!byHelper)floatAt('room-'+p.room,`${p.name} отдыхает, позже 🙂`,'#8a7a70');return}
-  const t=svcTime(svc);p.act={svc,left:t,total:t,help:!!byHelper};
+  const t=svcTime(svc);p.acts.push({svc,left:t,total:t,help:!!byHelper});
 }
 function pickup(id){
   const p=pet(id);if(!p||p.state!=='pickup')return;
@@ -379,9 +390,10 @@ function tick(dt){
   // звонки
   if(S.call){S.call.ttl-=dt;if(S.call.ttl<=0){S.call=null;S.missed++;S.nextCall=callGap();if(sheet&&sheet.type==='call')closeSheet();toast('📞 Пропущенный звонок')}}
   else{S.nextCall-=dt;if(S.nextCall<=0){S.call={pet:newGuest(),ttl:25,max:25};if(!S.staff.phone)toastOnce('call','📞 Звонят! Тапни по телефону, чтобы ответить')}}
-  if(S.call&&S.staff.phone&&S.call.max-S.call.ttl>=3)answer(freeSlots()>0,true);
+  if(S.call&&S.staff.phone&&S.call.max-S.call.ttl>=3)answer(false,true);
   for(const q of [...S.queue])if(S.t>=q.exp){S.queue=S.queue.filter(x=>x!==q);S.missed++;toast(`📋 ${q.pet.name} не дождался и нашёл другой отель`)}
-  if(S.queue.length&&freeSlots()>0)toastOnce('qfree','📋 Освободился номер — разверните очередь и позвоните гостю');
+  // администратор сам перезванивает первому в очереди, когда есть свободный номер
+  while(S.staff.phone&&S.queue.length&&freeSlots()>0)callBack(S.queue[0].id,true);
   for(const p of [...S.pets]){
     if(p.state==='coming'){p.eta-=dt;if(p.eta<=0){p.state='arrived';p.since=S.t;if(!S.staff.desk)toastOnce('arrive',`🐾 ${p.name} приехал — тапни, чтобы познакомиться`)}}
     else if(p.state==='arrived'){
@@ -392,19 +404,21 @@ function tick(dt){
         if(k==='check'){const f=(p.needs||[]).map(x=>NEED[x][p.type].toLowerCase());if(f.length)p.react='Осмотр: '+f.join(', ')+' 📝'}
         if(open){renderSheet();const bp=$('bigpet');if(bp){bp.classList.add('react');setTimeout(()=>bp.classList.remove('react'),1000)}floatAt('bigpet',MEET[k].fx,'#e05a8a')}
       }}
-      else if(S.staff.desk&&S.t-(p.since||0)>=3&&!open){ // администратор сам знакомится, потом заселяет
+      else if(S.staff.desk&&S.t-(p.since||0)>=3&&!open&&(p.adm||deskBusy()<S.staff.desk)){ // администратор сам знакомится, потом заселяет
+        p.adm=true;
         const next=Object.keys(MEET).find(k=>!p.did.includes(k));
         if(next)startMeet(p,next);
         else checkIn(p.id,true);
       }
     }
     else if(p.state==='room'){
-      if(p.act){p.act.left-=dt;if(p.act.left<=0){const r=activeReq(p,p.act.svc);if(r){r.done=true;p.mood=Math.min(100,p.mood+(100-MOOD0)/p.reqs.length)}p.cd[p.act.svc]=S.t+REPEAT_CD;p.act=null;p.idleAt=S.t}}
+      for(const a of [...p.acts]){a.left-=dt;if(a.left<=0){const r=activeReq(p,a.svc);if(r){r.done=true;p.mood=Math.min(100,p.mood+(100-MOOD0)/p.reqs.length)}p.cd[a.svc]=S.t+REPEAT_CD;p.acts=p.acts.filter(x=>x!==a)}}
       p.stay-=dt;
       const left=p.reqs.filter(r=>!r.done&&!r.miss);
-      if(left.length&&!p.act)p.mood=Math.max(0,p.mood-0.15*dt); // без внимания понемногу скучает
-      if(!p.act&&S.t-(p.idleAt||0)>=4)for(const r of left)if(S.help[r.svc]&&!onCd(p,r.svc)){doService(p.id,r.svc,true);toastOnce('helper','🧑 Помощник сам взялся за дело!');break}
-      if(p.stay<=0&&!p.act){
+      if(left.length&&!p.acts.length)p.mood=Math.max(0,p.mood-0.15*dt); // без внимания понемногу скучает
+      // свободный помощник сразу берётся за свою процедуру
+      for(const r of left)if(S.help[r.svc]&&!onCd(p,r.svc)&&!p.acts.some(a=>a.svc===r.svc)&&!helperBusy(r.svc)){doService(p.id,r.svc,true);toastOnce('helper','🧑 Помощник сам взялся за дело!')}
+      if(p.stay<=0&&!p.acts.length){
         for(const r of p.reqs)if(!r.done){r.miss=true;p.mood=Math.max(0,p.mood-15)}
         p.mood=Math.max(0,p.mood-15*(p.hidden||[]).length); // не заметили нужду на осмотре
         p.state='pickup';p.since=S.t;if(!S.staff.out)toastOnce('pick',`🚗 За ${p.name} приехали — нажми «Отдать хозяину»`);
@@ -419,8 +433,9 @@ function buy(what,k){
   if(what==='eq'){if(S.eq[k])return;c=EQ[k].cost;if(S.money>=c){S.eq[k]=true;ok=true;toast(`${EQ[k].icon} Куплено: ${EQ[k].name}`);const sv=Object.keys(SVC).find(x=>SVC[x].eq===k);if(sv)setTimeout(()=>toast(`🎉 Теперь гостям можно: ${SVC[sv].name.toLowerCase()}`),1400)}}
   if(what==='room'){if(S.rooms>=MAX_ROOMS)return;c=ROOM_COST[S.rooms];if(S.money>=c){S.rooms++;ok=true;toast('🛏️ Новый номер готов!')}}
   if(what==='lvl'){if(S.lvl[k]>=MAX_LVL)return;c=lvlCost(k);if(S.money>=c){S.lvl[k]++;ok=true}}
-  if(what==='help'){if(S.help[k])return;c=HELP[k];if(S.money>=c){S.help[k]=true;ok=true;toast(`🧑 Помощник: «${SVC[k].name}» теперь сам`)}}
-  if(what==='staff'){if(S.staff[k])return;c=STAFF[k].cost;if(S.money>=c){S.staff[k]=true;ok=true;toast(`${STAFF[k].icon} В команде: ${STAFF[k].name.toLowerCase()}`)}}
+  if(what==='help'){const l=S.help[k]||0;if(l>=HELP_MAX)return;c=helpCost(k);if(S.money>=c){S.help[k]=l+1;ok=true;toast(l?`🧑 Помощник «${SVC[k].name.toLowerCase()}» ур. ${l+1}: одновременно ${l+1} гостя`:`🧑 Помощник: «${SVC[k].name}» теперь сам`)}}
+  if(what==='staff'&&k==='desk'){const l=S.staff.desk||0;if(l>=DESK_MAX)return;c=DESK_COST[l];if(S.money>=c){S.staff.desk=l+1;ok=true;toast(l?`🛎️ Администратор ур. ${l+1}: одновременно ${l+1} гостя`:'🛎️ В команде: администратор на ресепшене')}}
+  else if(what==='staff'){if(S.staff[k])return;c=STAFF[k].cost;if(S.money>=c){S.staff[k]=true;ok=true;toast(`${STAFF[k].icon} В команде: ${STAFF[k].name.toLowerCase()}`)}}
   if(ok){S.money-=c;save();dirty=true}
 }
 
@@ -430,7 +445,7 @@ function buy(what,k){
 let sheet=null,dirty=true,lastKey='';
 function structKey(){
   return [S.rooms,qOpen,freeSlots()>0,S.queue.map(q=>q.id).join(','),S.call?S.call.pet.name:'',Object.values(S.eq).join(''),Object.values(S.help).join(''),Object.values(S.staff).join(''),
-    S.pets.map(p=>[p.id,p.state,p.room,p.tariff,p.did.length,p.meetAct?p.meetAct.k:'',p.act?p.act.svc+(p.act.help?'h':''):'',p.reqs.map(r=>r.done?'d':r.miss?'m':onCd(p,r.svc)?'c':'o').join('')].join(':')).join('|')].join('#');
+    S.pets.map(p=>[p.id,p.state,p.room,p.tariff,p.did.length,p.adm?1:0,p.meetAct?p.meetAct.k:'',(p.acts||[]).map(a=>a.svc+(a.help?'h':'')).join('+'),Object.keys(S.help).filter(k=>S.help[k]&&helperBusy(k)).join(''),p.reqs.map(r=>r.done?'d':r.miss?'m':onCd(p,r.svc)?'c':'o').join('')].join(':')).join('|')].join('#');
 }
 function phoneCard(){
   const adm=S.staff.phone;
@@ -441,7 +456,7 @@ function phoneCard(){
 function queueHTML(){
   if(!S.staff.phone||!S.queue.length)return '';
   const can=freeSlots()>0;
-  return `<div class="qbar ${can?'go':''}" data-act="qtoggle">📋 Очередь: ${S.queue.length}<span class="arr">${can?'есть место! ':''}${qOpen?'свернуть ▴':'развернуть ▾'}</span></div>`+
+  return `<div class="qbar ${can?'go':''}" data-act="qtoggle">📋 Очередь: ${S.queue.length}<span class="arr">${can?'☎️ перезваниваем… ':''}${qOpen?'свернуть ▴':'развернуть ▾'}</span></div>`+
     (qOpen?`<div class="qlist">${S.queue.map(q=>`<div class="qi"><span class="av">${PET[q.pet.type].svg}</span><div><b>${q.pet.name}</b><small>${PET[q.pet.type].kind}, ${q.pet.age} ${years(q.pet.age)} · ждёт ещё <span data-x="qexp:${q.id}"></span></small></div><button data-act="qcall" data-k="${q.id}" ${can?'':'disabled'}>📞 Позвонить</button></div>`).join('')}</div>`:'');
 }
 function lobbyHTML(){
@@ -452,12 +467,12 @@ function lobbyHTML(){
     :guestReadyHTML(p)).join('')}</div>`;
 }
 function guestReadyHTML(p){ // карточка в приёмной: видно, как идёт знакомство (ваше или администратора)
-  const adm=S.staff.desk,busy=p.meetAct||(adm&&p.did.length);
+  const adm=S.staff.desk,busy=p.meetAct||(adm&&p.adm),waitAdm=adm&&!p.adm&&deskBusy()>=adm;
   const steps=`<div class="gsteps">${Object.entries(MEET).map(([k,m])=>`<span class="${p.did.includes(k)?'ok':p.meetAct&&p.meetAct.k===k?'now':''}">${p.did.includes(k)?'✅':m.icon}</span>`).join('')}</div>`;
   const who=adm?'🛎️ Администратор':'Вы';
   const txt=p.meetAct?`${who}: ${MEET[p.meetAct.k].name.toLowerCase()}…`
     :p.did.length>=3?(adm?'🛎️ Администратор заселяет…':'знакомство пройдено — можно заселять')
-    :adm?'🛎️ Администратор сейчас подойдёт':'тапни, чтобы познакомиться';
+    :waitAdm?'🛎️ Администратор занят — ждёт очереди (или тапни сам)':adm?'🛎️ Администратор сейчас подойдёт':'тапни, чтобы познакомиться';
   return `<div class="guest ${busy?'busy':'ready'}" data-act="meet" data-k="${p.id}"><div class="av">${PET[p.type].svg}</div><div><b>${p.name} приехал!</b><small>${txt}</small>${steps}${p.meetAct?`<div class="bar"><i data-w="meet:${p.id}" style="background:var(--accent2)"></i></div>`:''}</div></div>`;
 }
 function roomHTML(i){
@@ -465,14 +480,16 @@ function roomHTML(i){
   if(!p)return `<div class="rcard free" id="room-${i}"><div class="rhead"><span>Номер ${i+1}</span><span>свободен</span></div>
     <div class="rbody"><div class="petbox"><div class="bed"></div><div class="bowl">🥣</div></div><div class="rinfo" style="font-size:13px">Чистая лежанка и миска ждут гостя</div></div></div>`;
   const T=TAR[p.tariff],kinds=Object.keys(SVC).filter(k=>p.reqs.some(r=>r.svc===k)); // всегда в одном порядке: еда, мытьё, стрижка, прогулка, игра
-  const anim=p.act?'a-'+p.act.svc:'';
-  const fxs=p.act?SVC[p.act.svc].fx.map(e=>`<span>${e}</span>`).join(''):'';
+  const a0=p.acts[0];
+  const anim=a0?'a-'+a0.svc:'';
+  const fxs=a0?SVC[a0.svc].fx.map(e=>`<span>${e}</span>`).join(''):'';
   const btns=kinds.map(k=>{
     const all=p.reqs.filter(r=>r.svc===k),done=all.filter(r=>r.done).length;
-    const req=activeReq(p,k),doing=p.act&&p.act.svc===k;
+    const req=activeReq(p,k),act=p.acts.find(a=>a.svc===k),doing=!!act,meBusy=p.acts.some(a=>!a.help);
     const cd=!doing&&req&&onCd(p,k);
-    const cls=doing?'doing':done===all.length?'done':cd?'cd':p.act?'':'can'; // можно делать прямо сейчас — яркая кнопка
-    return `<button class="svc ${cls}" data-act="svc" data-k="${p.id}:${k}">${S.help[k]?'<span class="help">🧑</span>':''}<span class="cnt">${done}/${all.length}</span>${SVC[k].icon}<small>${doing&&p.act.help?'помощник':cd?'отдыхает':svcName(k,p)}</small>${doing?`<i class="prog" data-w="act:${p.id}"></i>`:''}</button>`;
+    const helperFree=S.help[k]&&!helperBusy(k); // свободный помощник сделает сам — вам эта кнопка не нужна
+    const cls=doing?'doing':done===all.length?'done':cd?'cd':meBusy||helperFree?'':'can'; // можно делать прямо сейчас — яркая кнопка
+    return `<button class="svc ${cls}" data-act="svc" data-k="${p.id}:${k}">${S.help[k]?'<span class="help">🧑</span>':''}<span class="cnt">${done}/${all.length}</span>${SVC[k].icon}<small>${doing&&act.help?'помощник':cd?'отдыхает':svcName(k,p)}</small>${doing?`<i class="prog" data-w="act:${p.id}:${k}"></i>`:''}</button>`;
   }).join('');
   const pick=p.state==='pickup';
   return `<div class="rcard ${pick?'pickup':''}" id="room-${i}">
@@ -501,12 +518,12 @@ function render(){
 }
 function update(){ // каждый кадр: только цифры и полоски
   for(const el of document.querySelectorAll('#app [data-w],#sheet [data-w]')){
-    const [k,id]=el.dataset.w.split(':');let w=0;
+    const [k,id,x]=el.dataset.w.split(':');let w=0;
     if(k==='ttl')w=S.call?S.call.ttl/S.call.max*100:0;
     else{const p=pet(+id);if(!p)continue;
       if(k==='mood'){w=p.mood;el.style.background=p.mood>60?'var(--accent2)':p.mood>30?'var(--warn)':'var(--bad)'}
       else if(k==='stay')w=p.state==='pickup'?100:(1-p.stay/p.total)*100;
-      else if(k==='act')w=p.act?(1-p.act.left/p.act.total)*100:0;
+      else if(k==='act'){const a=p.acts.find(a=>a.svc===x);w=a?(1-a.left/a.total)*100:0}
       else if(k==='meet')w=p.meetAct?(1-p.meetAct.left/p.meetAct.total)*100:100;}
     el.style.width=Math.max(0,Math.min(100,w)).toFixed(1)+'%';
   }
@@ -571,9 +588,14 @@ function shopSheet(){
     <div class="sh-h">Скорость ухода</div>
     ${open.map(k=>row(SVC[k].icon,`${SVC[k].name} · ур. ${S.lvl[k]+1}`,`${svcTime(k).toFixed(1)} с → ${(svcTime(k)*0.85).toFixed(1)} с`,'lvl',k,lvlCost(k),S.lvl[k]>=MAX_LVL,'МАКС')).join('')}
     <div class="sh-h">Персонал</div>
-    ${Object.entries(STAFF).map(([k,st])=>row(st.icon,st.name,st.desc,'staff',k,st.cost,S.staff[k],'Нанят ✅')).join('')}
+    ${Object.entries(STAFF).map(([k,st])=>{
+      if(k!=='desk')return row(st.icon,st.name,st.desc,'staff',k,st.cost,S.staff[k],'Нанят ✅');
+      const l=S.staff.desk||0;
+      return row(st.icon,l?`${st.name} · ур. ${l}`:st.name,l?`Одновременно гостей: ${l}${l<DESK_MAX?' → '+(l+1):' (максимум)'}`:st.desc+'. Ур. 1 — по одному гостю за раз','staff',k,DESK_COST[l]||0,l>=DESK_MAX,'МАКС');
+    }).join('')}
     <div class="sh-h">Помощники по уходу</div>
-    ${open.map(k=>row('🧑',`Помощник: ${SVC[k].name.toLowerCase()}`,'Сам делает это, если гость скучает без дела 4 с','help',k,HELP[k],S.help[k],'Нанят ✅')).join('')}
+    ${open.map(k=>{const l=S.help[k]||0;
+      return row('🧑',`Помощник: ${SVC[k].name.toLowerCase()}${l?' · ур. '+l:''}`,l?`Одновременно гостей: ${l}${l<HELP_MAX?' → '+(l+1):' (максимум)'}`:'Сразу сам берётся за эту процедуру. Ур. 1 — один гость за раз; пока он занят, можно сделать самому','help',k,helpCost(k),l>=HELP_MAX,'МАКС')}).join('')}
     <div class="stats"><div>Гостей обслужено<b>${S.served}</b></div><div>Заработано<b>${fmt(S.earned)} 💰</b></div><div>Отказов<b>${S.declined}</b></div><div>Пропущено звонков<b>${S.missed}</b></div></div>
     <button class="link" data-act="reset">Начать заново</button>
     <div class="sh-sub" style="margin-top:10px;text-align:center">Хвостатый отель · версия ${VERSION}</div>`;
