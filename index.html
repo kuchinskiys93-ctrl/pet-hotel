@@ -270,6 +270,40 @@ img.pv.photo{border-radius:50%;box-shadow:0 0 0 .05em #fff,0 .04em .1em #0004;ob
 @keyframes fl{to{transform:translate(-50%,-160%);opacity:0}}
 #toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 14px;border-radius:12px;font-size:14px;z-index:25;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;text-align:center}
 #toast.show{opacity:1}
+/* ---- Приёмная: мини-карточки, видно до 4 гостей сразу ---- */
+.lobby{height:100px}
+.guest{flex:0 0 calc(25% - 6px);height:94px;flex-direction:column;justify-content:flex-start;gap:2px;padding:6px 3px;text-align:center;border-radius:14px}
+.guest>div:last-child{width:100%;flex:none}
+.guest .av{font-size:32px;position:relative;line-height:1}
+.guest .av .car{position:absolute;right:-10px;bottom:-4px;font-size:15px;animation:drive 1.2s ease-in-out infinite}
+.guest.coming .av{animation:none}
+.guest b{font-size:11.5px}
+.guest small{font-size:10px}
+.guest .gsteps{justify-content:center;gap:2px;margin-top:2px}
+.guest .gsteps span{width:18px;height:16px;font-size:9px;border-radius:5px}
+.guest .bar{height:4px;margin-top:4px}
+.lobby .empty-note{flex:1}
+/* ---- Уровни номеров: Стандарт / Комфорт / Люкс ---- */
+.rhead .rst{font-style:normal;color:#e0a100;font-size:10px;margin-left:2px;letter-spacing:-1px}
+.rcard.lv2{background:#fbf2e6}
+.rcard.lv3{background:linear-gradient(160deg,#f4ecff,#e8dcfb)}
+.rcard.lv3 .rhead .rst{color:#9b6fe0}
+.rcard.free.lv2{background:repeating-linear-gradient(135deg,#fbf1e4 0 12px,#f5e7d5 12px 24px)}
+.rcard.free.lv3{background:repeating-linear-gradient(135deg,#f3ecff 0 12px,#e9dffb 12px 24px)}
+.petbox .pet{font-size:36px;left:9px;bottom:12px;z-index:1}
+.petbox .bowl{z-index:2}
+/* Стандарт: жёсткая подложка-коврик */
+.rcard .petbox .bed{left:0;right:0;bottom:1px;height:15px;border-radius:5px;background:linear-gradient(#e2c6a2,#cfa77a);box-shadow:inset 0 -3px 0 #b88b5a,0 1px 0 #0001}
+/* Комфорт: мягкая пастельная лежанка и подушка за спиной */
+.rcard.lv2 .petbox::before{content:'';position:absolute;left:1px;right:1px;bottom:12px;height:30px;border-radius:15px;background:#fff1e6;box-shadow:inset 0 0 0 1.5px #f3d9c4,0 1px 0 #e9cdb7}
+.rcard.lv2 .petbox .bed{left:-3px;right:-3px;bottom:0;height:21px;border-radius:50%/60%;background:linear-gradient(#ffe8ee,#f5c9d6);box-shadow:inset 0 4px 0 #fffb,0 2px 0 #e3aebe}
+/* Люкс: фиолетовая подушка с золотой окантовкой и кисточками */
+.rcard.lv3 .petbox::before{content:'';position:absolute;left:1px;right:1px;bottom:12px;height:30px;border-radius:15px;background:linear-gradient(#f6f0ff,#e6d9fc);box-shadow:inset 0 0 0 1.5px #d8c4f6,0 1px 0 #c9b2ee}
+.rcard.lv3 .petbox .bed{left:-3px;right:-3px;bottom:0;height:21px;border-radius:50%/60%;background:linear-gradient(#d7bfff,#ae8be9);box-shadow:inset 0 4px 0 #fff7,inset 0 -2px 0 #e2bd4f,0 2px 0 #8f6fd0}
+/* кисточки по краям лежанки */
+.rcard.lv3 .petbox::after{content:'';position:absolute;left:-7px;right:-7px;bottom:0;height:13px;pointer-events:none;z-index:2;
+  background:radial-gradient(ellipse 2.6px 4px at 3px 8px,#f0c443 92%,transparent),radial-gradient(ellipse 2.6px 4px at calc(100% - 3px) 8px,#f0c443 92%,transparent),
+  linear-gradient(#c99a26,#c99a26) 2.5px 0/1.2px 5px no-repeat,linear-gradient(#c99a26,#c99a26) calc(100% - 2.5px) 0/1.2px 5px no-repeat}
 /* ---- Заставка ---- */
 #intro{position:fixed;inset:0;z-index:50;background:radial-gradient(circle at 50% 35%,#ffe3c4,#ffb98a 55%,#f08a5d);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;transition:opacity .5s;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom)}
 #intro.out{opacity:0;pointer-events:none}
@@ -392,7 +426,7 @@ function face(g){
 }
 
 // ---------- Данные ----------
-const VERSION='2.5.1';
+const VERSION='2.6';
 const SAVE_KEY='pethotel_v4'; // 2.1 — несколько отелей; сохранение 2.0 (pethotel_v3) переносится и не удаляется
 const OLD_KEY='pethotel_v3';
 const PET={
@@ -475,13 +509,28 @@ const STAFF={
   desk:{icon:'🛎️',name:'Администратор на ресепшене',desc:'Сам знакомится с приехавшими и заселяет по пожеланиям',cost:600},
   out:{icon:'🚗',name:'Сотрудник выдачи',desc:'Сам отдаёт питомца хозяину, когда за ним приехали',cost:450},
 };
-const ROOM_COST=[0,0,200,450,900,1800,3000,4500]; const MAX_ROOMS=8, MAX_LVL=10;
+const ROOM_COST=[0,0,200,450,900,1800,3000,4500];
+// Уровень номера: 1 — Стандарт, 2 — Комфорт, 3 — Люкс. Каждый уровень сокращает проживание на 20%
+const ROOM_NAMES=['','Стандарт','Комфорт','Люкс'], ROOM_LVL_MAX=3, ROOM_UP_COST=[0,0,300,900], ROOM_SPEED=0.8;
+const roomLvl=i=>(S.roomLvl&&S.roomLvl[i])||1;
+const stayMult=i=>Math.pow(ROOM_SPEED,roomLvl(i)-1);
+const roomUpCost=i=>Math.round(ROOM_UP_COST[roomLvl(i)+1]*(K.mult||1));
+// Что нужно, чтобы открыть уровень номера (чтобы гостей успевали обслужить за более короткое проживание):
+// Комфорт — всё оборудование и все помощники ур. 2; Люкс — все помощники ур. 3 и администратор на ресепшене ур. 3
+function roomReqMissing(lvl){
+  const m=[];if(lvl<2)return m;
+  const need=lvl===2?2:3;
+  if(lvl===2)for(const [k,e] of Object.entries(EQ))if(!S.eq[k])m.push(e.icon+' '+e.name.toLowerCase());
+  for(const k of Object.keys(SVC))if((S.help[k]||0)<need)m.push(`🧑 «${SVC[k].name.toLowerCase()}» ур. ${need}`);
+  if(lvl===3&&(S.staff.desk||0)<3)m.push('🛎️ ресепшен ур. 3');
+  return m;
+} const MAX_ROOMS=8, MAX_LVL=10;
 
 // Сохранение: G — вся игра (кошелёк, звёзды, отели), S — текущий отель
 function fresh(kind='cats'){
   const k=KINDS[kind],o=o=>Object.fromEntries(Object.keys(k.svc).map(x=>[x,o]));
   return attach({kind,reviews:[5,5,4],rooms:2,eq:Object.fromEntries(Object.keys(k.eq).map(x=>[x,false])),
-    lvl:o(0),help:o(0),staff:{phone:false,desk:0,out:false},ads:0,manager:false,prestiged:false,
+    lvl:o(0),help:o(0),staff:{phone:false,desk:0,out:false},ads:0,roomLvl:[],manager:false,prestiged:false,
     pets:[],queue:[],seq:1,t:0,call:null,nextCall:3,served:0,declined:0,missed:0,earned:0,tips:{}});
 }
 function freshG(){return {v:4,money:60,stars:0,active:0,hotels:[fresh('cats')]}}
@@ -496,6 +545,7 @@ function fixHotel(H){ // подтягиваем старые сохранени�
   if(!H.staff)H.staff={phone:false,desk:0,out:false};
   if(typeof H.staff.desk==='boolean')H.staff.desk=H.staff.desk?1:0;
   if(H.ads==null)H.ads=0;
+  if(!H.roomLvl)H.roomLvl=[];
   if(H.manager==null)H.manager=false;if(H.prestiged==null)H.prestiged=false;
   for(const p of H.pets){p.cd=p.cd||{};if(!p.acts)p.acts=p.act?[p.act]:[];delete p.act}
   return attach(H);
@@ -587,7 +637,7 @@ function checkIn(id,auto){ // заселяем с комплексом по вы
   const P=plan(p),tk=P.tk;
   const list=P.list;
   p.price=P.price;p.hidden=hiddenNeeds(p);
-  const total=P.stay*rnd(0.9,1.1);
+  const total=P.stay*rnd(0.9,1.1)*stayMult(r); // в Комфорте и Люксе гости уезжают быстрее
   p.reqs=list.map(svc=>({svc,done:false,miss:false}));p.cd={};p.acts=[];list.forEach(k=>p.cd[k]=S.t); // cd[k] — с какого момента процедура доступна
   Object.assign(p,{state:'checkin',tt:{left:CHECK_T,total:CHECK_T},room:r,tariff:tk,stay:total,total,mood:meetMood(p)});p.meetAct=null; // сначала оформляем заселение в номере
   if(sheet&&sheet.type==='meet'&&sheet.k===id)closeSheet();
@@ -698,6 +748,7 @@ function buy(what,k){
   if(what==='room'){if(S.rooms>=MAX_ROOMS)return;c=ROOM_COST[S.rooms];if(S.money>=c){S.rooms++;ok=true;toast('🛏️ Новый номер готов!')}}
   if(what==='lvl'){if(S.lvl[k]>=MAX_LVL)return;c=lvlCost(k);if(S.money>=c){S.lvl[k]++;ok=true}}
   if(what==='help'){const l=S.help[k]||0;if(l>=HELP_MAX)return;c=helpCost(k);if(S.money>=c){S.help[k]=l+1;ok=true;toast(l?`🧑 Помощник «${SVC[k].name.toLowerCase()}» ур. ${l+1}: одновременно ${l+1} гостя`:`🧑 Помощник: «${SVC[k].name}» теперь сам`)}}
+  if(what==='roomup'){const i=+k;if(i>=S.rooms||roomLvl(i)>=ROOM_LVL_MAX||roomReqMissing(roomLvl(i)+1).length)return;c=roomUpCost(i);if(S.money>=c){if(!S.roomLvl)S.roomLvl=[];S.roomLvl[i]=roomLvl(i)+1;ok=true;toast(`${S.roomLvl[i]===3?'💜':'🛏️'} Номер ${i+1} теперь «${ROOM_NAMES[S.roomLvl[i]]}»`)}}
   if(what==='ads'){if((S.ads||0)>=ADS_MAX)return;c=adsCost();if(S.money>=c){S.ads=(S.ads||0)+1;ok=true;S.nextCall=Math.min(S.nextCall,callGap());toast(`📣 Реклама ур. ${S.ads}: звонят в среднем раз в ${Math.round(avgGap())} с`)}}
   if(what==='manager'){if(S.manager||prestigeMissing().length)return;c=K.manager;if(S.money>=c){S.manager=true;ok=true;toast('👔 Управляющий нанят! Теперь можно открыть новый отель')}}
   if(what==='staff'&&k==='desk'){const l=S.staff.desk||0;if(l>=DESK_MAX)return;c=DESK_COST[l];if(S.money>=c){S.staff.desk=l+1;ok=true;toast(l?`🛎️ Администратор ур. ${l+1}: одновременно ${l+1} гостя`:'🛎️ В команде: администратор на ресепшене')}}
@@ -710,7 +761,7 @@ function buy(what,k){
 // цифры и полоски обновляются на месте каждый кадр
 let sheet=null,dirty=true,lastKey='';
 function structKey(){
-  return [G.active,G.hotels.length,G.stars,S.manager,S.prestiged,S.rooms,qOpen,freeSlots()>0,S.queue.map(q=>q.id).join(','),S.call?S.call.pet.name:'',Object.values(S.eq).join(''),Object.values(S.help).join(''),Object.values(S.staff).join(''),
+  return [G.active,G.hotels.length,G.stars,S.manager,S.prestiged,S.rooms,qOpen,freeSlots()>0,S.queue.map(q=>q.id).join(','),S.call?S.call.pet.name:'',Object.values(S.eq).join(''),(S.roomLvl||[]).join(''),Object.values(S.help).join(''),Object.values(S.staff).join(''),
     S.pets.map(p=>[p.id,p.state,p.room,p.tariff,p.did.length,p.adm?1:0,p.meetAct?p.meetAct.k:'',(p.acts||[]).map(a=>a.svc+(a.help?'h':'')).join('+'),Object.keys(S.help).filter(k=>S.help[k]&&helperBusy(k)).join(''),p.reqs.map(r=>r.done?'d':r.miss?'m':onCd(p,r.svc)?'c':'o').join('')].join(':')).join('|')].join('#');
 }
 function tabsHTML(){
@@ -734,7 +785,7 @@ function lobbyHTML(){
   const L=S.pets.filter(p=>p.state==='coming'||p.state==='arrived');
   if(!L.length)return `<div class="lobby"><div class="empty-note">Здесь появятся гости, когда вы примете звонок.</div></div>`;
   return `<div class="lobby">${L.map(p=>p.state==='coming'
-    ?`<div class="guest coming"><div class="av">🚗</div><div><b>${p.name} едет</b><small>будет через <span data-x="eta:${p.id}"></span> с</small></div></div>`
+    ?`<div class="guest coming" title="${p.name} едет"><div class="av">${face(p)}<span class="car">🚗</span></div><div><b>${p.name}</b><small>едет · <span data-x="eta:${p.id}"></span> с</small></div></div>`
     :guestReadyHTML(p)).join('')}</div>`;
 }
 function guestReadyHTML(p){ // карточка в приёмной: видно, как идёт знакомство (ваше или администратора)
@@ -744,11 +795,13 @@ function guestReadyHTML(p){ // карточка в приёмной: видно,
   const txt=p.meetAct?`${who}: ${MEET[p.meetAct.k].name.toLowerCase()}…`
     :p.did.length>=3?(freeRoom()<0?'⏳ ждёт, пока освободится номер':adm?'🛎️ Администратор заселяет…':'знакомство пройдено — можно заселять')
     :waitAdm?'🛎️ Администратор занят — ждёт очереди (или тапни сам)':adm?'🛎️ Администратор сейчас подойдёт':'тапни, чтобы познакомиться';
-  return `<div class="guest ${busy?'busy':'ready'}" data-act="meet" data-k="${p.id}"><div class="av">${face(p)}</div><div><b>${p.name} приехал!</b><small>${txt}</small>${steps}${p.meetAct?`<div class="bar"><i data-w="meet:${p.id}" style="background:var(--accent2)"></i></div>`:''}</div></div>`;
+  const short=p.did.length>=3?(freeRoom()<0?'⏳ ждёт номер':adm?'🛎️ заселяет':'✅ заселить'):waitAdm?'🛎️ занят':adm?'🛎️ сейчас':'👆 тапни';
+  return `<div class="guest ${busy?'busy':'ready'}" data-act="meet" data-k="${p.id}" title="${txt}"><div class="av">${face(p)}</div><div><b>${p.name}</b>${steps}${p.meetAct?`<div class="bar"><i data-w="meet:${p.id}" style="background:var(--accent2)"></i></div>`:`<small>${short}</small>`}</div></div>`;
 }
 function roomHTML(i){
   const p=S.pets.find(x=>x.room===i);
-  if(!p)return `<div class="rcard free" id="room-${i}"><div class="rhead"><span>Номер ${i+1}</span></div>
+  const lv=roomLvl(i),num=`Номер ${i+1}${lv>1?`<i class="rst">${'★'.repeat(lv-1)}</i>`:''}`;
+  if(!p)return `<div class="rcard free lv${lv}" id="room-${i}"><div class="rhead"><span>${num}</span></div>
     <div class="rbody"><div class="petbox"><div class="bed"></div><div class="bowl">🥣</div></div><div class="rinfo">свободен</div></div></div>`;
   const T=TAR[p.tariff],kinds=Object.keys(SVC).filter(k=>p.reqs.some(r=>r.svc===k)); // всегда в одном порядке: еда, мытьё, стрижка, прогулка, игра
   const a0=p.acts[0];
@@ -763,8 +816,8 @@ function roomHTML(i){
     return `<button class="svc ${cls}" data-act="svc" data-k="${p.id}:${k}">${S.help[k]?'<span class="help">🧑</span>':''}<span class="cnt">${done}/${all.length}</span>${SVC[k].icon}<small>${doing&&act.help?'помощник':cd?'отдыхает':svcName(k,p)}</small>${doing?`<i class="prog" data-w="act:${p.id}:${k}"></i>`:''}</button>`;
   }).join('');
   const pick=p.state==='pickup'||p.state==='checkout',trans=p.state==='checkin'||p.state==='checkout';
-  return `<div class="rcard ${pick?'pickup':''}" id="room-${i}">
-    <div class="rhead"><span>Номер ${i+1}</span><span class="tar" title="${T.name}">${p.reqs.length?[...new Set(p.reqs.map(r=>r.svc))].map(k=>SVC[k].icon).join(''):T.icon}</span></div>
+  return `<div class="rcard lv${lv} ${pick?'pickup':''}" id="room-${i}">
+    <div class="rhead"><span>${num}</span><span class="tar" title="${T.name}">${p.reqs.length?[...new Set(p.reqs.map(r=>r.svc))].map(k=>SVC[k].icon).join(''):T.icon}</span></div>
     <div class="rbody"><div class="petbox ${anim}"><div class="bed"></div><div class="bowl">🥣</div><div class="pet">${face(p)}</div><div class="fx">${fxs}</div></div>
       <div class="rinfo"><div class="nm">${p.name}</div>
         <div class="lbl"><span>😊</span><span data-x="mood:${p.id}"></span></div><div class="bar"><i data-w="mood:${p.id}"></i></div>
@@ -860,7 +913,7 @@ function meetSheet(id){
     <div class="sh-h">Пожелания</div>
     <div class="needs">${needsHTML(p)}</div>
     ${(()=>{const P=plan(p),T=TAR[P.tk];
-      return `<button class="tarif" data-act="checkin" data-k="${p.id}" ${freeRoom()<0?'disabled':''}><span class="ic">${T.icon}</span><div><b>Заселить · ${P.list.map(k=>SVC[k].icon).join('')}</b><small>${freeRoom()<0?'⏳ все номера заняты — подождите':T.name+' · ~'+P.stay+' с'}</small></div><span class="pr">до ${Math.round(P.price*1.44)} 💰</span></button>`})()}`;
+      return `<button class="tarif" data-act="checkin" data-k="${p.id}" ${freeRoom()<0?'disabled':''}><span class="ic">${T.icon}</span><div><b>Заселить · ${P.list.map(k=>SVC[k].icon).join('')}</b><small>${freeRoom()<0?'⏳ все номера заняты — подождите':T.name+' · ~'+Math.round(P.stay*stayMult(freeRoom()))+' с'}</small></div><span class="pr">до ${Math.round(P.price*1.44)} 💰</span></button>`})()}`;
 }
 function needsHTML(p){
   if(p.meetAct&&p.meetAct.k==='check')return `<div class="hint">🩺 Идёт осмотр…</div>`;
@@ -891,7 +944,7 @@ function shopSheet(){
   const has={
     svc:Object.keys(SVC).some(k=>svcOpen(k)?(S.lvl[k]<MAX_LVL&&canAfford(lvlCost(k)))||((S.help[k]||0)<HELP_MAX&&canAfford(helpCost(k))):canAfford(EQ[SVC[k].eq].cost)),
     staff:Object.keys(STAFF).some(k=>k==='desk'?(S.staff.desk||0)<DESK_MAX&&canAfford(DESK_COST[S.staff.desk||0]):!S.staff[k]&&canAfford(STAFF[k].cost)),
-    hotel:(S.rooms<MAX_ROOMS&&canAfford(ROOM_COST[S.rooms]))||((S.ads||0)<ADS_MAX&&canAfford(adsCost())),
+    hotel:(S.rooms<MAX_ROOMS&&canAfford(ROOM_COST[S.rooms]))||[...Array(S.rooms)].some((_,i)=>roomLvl(i)<ROOM_LVL_MAX&&!roomReqMissing(roomLvl(i)+1).length&&canAfford(roomUpCost(i)))||((S.ads||0)<ADS_MAX&&canAfford(adsCost())),
     prest:!S.manager&&!prestigeMissing().length&&canAfford(K.manager),
   };
   const tabs=[['svc','🧼 Услуги'],['staff','👥 Персонал'],['hotel','🏨 Отель'],['prest','⭐ Престиж']];
@@ -918,6 +971,12 @@ function shopSheet(){
   }
   else if(shopTab==='hotel'){
     body=`<div class="scard"><div class="sh"><span class="ic">🏨</span>Номера</div>${up('Номеров',S.rooms,MAX_ROOMS,ROOM_COST[S.rooms]||0,'room',null,'Можно принять больше гостей','Купить')}</div>
+      <div class="scard"><div class="sh"><span class="ic">✨</span>Уровень номеров</div>
+        ${(()=>{const n2=roomReqMissing(2),n3=roomReqMissing(3);
+          return `<small class="lock" style="display:block;margin-top:4px">Комфорт ★ — все помощники ур. 2${n2.length?' 🔒':' ✅'} · Люкс ★★ — помощники и ресепшен ур. 3${n3.length?' 🔒':' ✅'}</small>`})()}
+        ${[...Array(S.rooms)].map((_,i)=>{const l=roomLvl(i),miss=l<ROOM_LVL_MAX?roomReqMissing(l+1):[];
+          if(miss.length)return `<div class="up"><div class="ul"><b>Номер ${i+1} · ${ROOM_NAMES[l]} <em>ур. ${l}/${ROOM_LVL_MAX}</em></b>${pips(l,ROOM_LVL_MAX)}<small>Для «${ROOM_NAMES[l+1]}» нужно: ${miss.join(', ')}</small></div><button class="ubtn" disabled><b>🔒 ${ROOM_NAMES[l+1]}</b><span>${fmt(roomUpCost(i))} 💰</span></button></div>`;
+          return up(`Номер ${i+1} · ${ROOM_NAMES[l]}`,l,ROOM_LVL_MAX,l<ROOM_LVL_MAX?roomUpCost(i):0,'roomup',i,l<ROOM_LVL_MAX?`${ROOM_NAMES[l+1]}: проживание −20%, гости уезжают быстрее`:`Проживание −${Math.round((1-stayMult(i))*100)}%`)}).join('')}</div>
       <div class="scard"><div class="sh"><span class="ic">📣</span>Реклама</div>${up('Уровень',S.ads||0,ADS_MAX,(S.ads||0)>=ADS_MAX?0:adsCost(),'ads',null,(S.ads||0)>=ADS_MAX?`Звонят в среднем раз в ${Math.round(avgGap())} с`:`Звонят в среднем раз в ${Math.round(avgGap())} с → ${Math.round(avgGap((S.ads||0)+1))} с`,'Запустить')}</div>
       <div class="scard"><div class="sh"><span class="ic">🛏️</span>Оборудование</div>
         ${up('🛏️ Лежанка и миски',1,1,0,'eq',null,'Есть с самого начала')}
