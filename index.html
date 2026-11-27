@@ -83,7 +83,7 @@ h3{margin:14px 2px 6px;font-size:12px;color:var(--muted);text-transform:uppercas
 .rhead{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--muted);font-weight:700}
 .tar{background:#fff3e6;color:#b4692e;border-radius:8px;padding:2px 8px;font-weight:800}
 .rbody{display:flex;gap:12px;align-items:center;margin-top:6px}
-.petbox{position:relative;width:96px;height:96px;flex:none;cursor:pointer}
+.petbox{position:relative;width:96px;height:96px;flex:none}
 .petbox .bed{position:absolute;left:4px;right:4px;bottom:2px;height:30px;border-radius:50%;background:radial-gradient(#ffd9b3,#f0b27a);box-shadow:inset 0 -4px 0 #d98e4f}
 .petbox .bowl{position:absolute;right:-6px;bottom:0;font-size:20px}
 .petbox .pet{position:absolute;left:14px;bottom:14px;font-size:68px;line-height:1;animation:idle 2.6s ease-in-out infinite;transform-origin:50% 100%}
@@ -135,6 +135,23 @@ h3{margin:14px 2px 6px;font-size:12px;color:var(--muted);text-transform:uppercas
 .rcard.free .rbody{flex:1;justify-content:center}
 .rcard.free .rinfo{text-align:center;font-size:12px}
 .rcard.add{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;min-height:120px;font-size:12px}
+/* ---- Стабильная раскладка: блоки не меняют высоту, номера не «прыгают» ---- */
+.head .phone,.head .phone.idle{height:70px;box-sizing:border-box;padding-top:8px;padding-bottom:8px}
+.head .phone>div:last-child{min-width:0}
+.head .phone small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.head .phone .ring{width:44px;height:44px;font-size:22px}
+.lobby{flex-wrap:nowrap;overflow-x:auto;height:92px;padding:3px;margin:-3px;scrollbar-width:none}
+.lobby::-webkit-scrollbar{display:none}
+.guest{flex:0 0 calc(50% - 4px);box-sizing:border-box;height:86px;padding:8px;gap:6px;align-items:center;overflow:hidden}
+.guest .av{font-size:34px;flex:none}
+.guest small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.guest b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.guest .gsteps span{width:22px;height:20px;font-size:11px}
+.empty-note{height:86px;box-sizing:border-box;display:flex;align-items:center}
+.acts{min-height:var(--acts-h,78px);align-content:start}
+.pickbtn{height:var(--acts-h,78px);box-sizing:border-box}
+.rooms{grid-auto-rows:1fr}
+.rcard{min-height:192px;box-sizing:border-box}
 .a-food .pet{animation:chomp .35s infinite}
 @keyframes chomp{50%{transform:translateY(4px) scale(1.04,.94)}}
 .a-wash .pet{animation:wiggle .4s infinite}
@@ -244,7 +261,7 @@ function spitzSvg(){
 }
 
 // ---------- Данные ----------
-const VERSION='2.0.7';
+const VERSION='2.0.8';
 const SAVE_KEY='pethotel_v3'; // 2.0 — новая игра; сохранения 1.x не трогаем
 const PET={
   cat:{svg:catSvg(),kind:'кот',whose:'кота',names:['Мурзик','Уголёк','Ночка','Багира','Тень','Маркиз','Луна','Пантера','Сажа','Черныш'],
@@ -479,14 +496,15 @@ function phoneCard(){
   return `<div class="card phone calling" data-act="call"><div class="ring">📞</div><div style="flex:1"><b>Входящий звонок!</b><small>Звонят насчёт ${PET[g.type].whose} по кличке ${g.name} · ${adm?'☎️ администратор берёт трубку…':'тапни, чтобы ответить'}</small><div class="bar ttl"><i data-w="ttl"></i></div></div></div>`;
 }
 function queueHTML(){
-  if(!S.staff.phone||!S.queue.length)return '';
+  if(!S.staff.phone)return '';
   const can=freeSlots()>0;
+  if(!S.queue.length)return `<div class="qbar">📋 Очередь пуста<span class="arr">☎️ администратор на связи</span></div>`;
   return `<div class="qbar ${can?'go':''}" data-act="qtoggle">📋 Очередь: ${S.queue.length}<span class="arr">${can?'☎️ перезваниваем… ':''}${qOpen?'свернуть ▴':'развернуть ▾'}</span></div>`+
     (qOpen?`<div class="qlist">${S.queue.map(q=>`<div class="qi"><span class="av">${PET[q.pet.type].svg}</span><div><b>${q.pet.name}</b><small>${PET[q.pet.type].kind}, ${q.pet.age} ${years(q.pet.age)} · ждёт ещё <span data-x="qexp:${q.id}"></span></small></div><button data-act="qcall" data-k="${q.id}" ${can?'':'disabled'}>📞 Позвонить</button></div>`).join('')}</div>`:'');
 }
 function lobbyHTML(){
   const L=S.pets.filter(p=>p.state==='coming'||p.state==='arrived');
-  if(!L.length)return `<div class="empty-note">Здесь появятся гости, когда вы примете звонок.</div>`;
+  if(!L.length)return `<div class="lobby"><div class="empty-note">Здесь появятся гости, когда вы примете звонок.</div></div>`;
   return `<div class="lobby">${L.map(p=>p.state==='coming'
     ?`<div class="guest coming"><div class="av">🚗</div><div><b>${p.name} едет</b><small>будет через <span data-x="eta:${p.id}"></span> с</small></div></div>`
     :guestReadyHTML(p)).join('')}</div>`;
@@ -519,7 +537,7 @@ function roomHTML(i){
   const pick=p.state==='pickup';
   return `<div class="rcard ${pick?'pickup':''}" id="room-${i}">
     <div class="rhead"><span>Номер ${i+1}</span><span class="tar" title="${T.name}">${p.reqs.length?[...new Set(p.reqs.map(r=>r.svc))].map(k=>SVC[k].icon).join(''):T.icon}</span></div>
-    <div class="rbody"><div class="petbox ${anim}" data-act="petinfo" data-k="${p.id}"><div class="bed"></div><div class="bowl">🥣</div><div class="pet">${PET[p.type].svg}</div><div class="fx">${fxs}</div></div>
+    <div class="rbody"><div class="petbox ${anim}"><div class="bed"></div><div class="bowl">🥣</div><div class="pet">${PET[p.type].svg}</div><div class="fx">${fxs}</div></div>
       <div class="rinfo"><div class="nm">${p.name}</div>
         <div class="lbl"><span>😊</span><span data-x="mood:${p.id}"></span></div><div class="bar"><i data-w="mood:${p.id}"></i></div>
         <div class="lbl"><span>${pick?'🚗':'⏱'}</span><span data-x="left:${p.id}"></span></div><div class="bar"><i data-w="stay:${p.id}" style="background:#9fb7e8"></i></div>
