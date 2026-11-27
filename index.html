@@ -41,6 +41,7 @@ h3{margin:14px 2px 6px;font-size:12px;color:var(--muted);text-transform:uppercas
 .bar{height:7px;background:var(--track);border-radius:4px;overflow:hidden}
 .bar>i{display:block;height:100%;width:0;background:var(--accent2);border-radius:4px}
 .pv{width:1em;height:1em;display:inline-block;vertical-align:-.15em;overflow:visible}
+img.pv.photo{border-radius:50%;box-shadow:0 0 0 .05em #fff,0 .04em .1em #0004;object-fit:cover;-webkit-user-drag:none;user-select:none}
 .card{background:var(--card);border-radius:18px;padding:12px;box-shadow:0 3px 0 var(--line);position:relative}
 /* Телефон */
 .phone{display:flex;align-items:center;gap:12px;cursor:pointer}
@@ -155,6 +156,11 @@ h3{margin:14px 2px 6px;font-size:12px;color:var(--muted);text-transform:uppercas
 .ttbox span{font-size:12px;font-weight:700;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ttbox .bar{width:100%;height:6px;margin-top:3px}
 .ttbox .bar i{background:var(--accent)}
+/* заселение — зелёное, выселение — розовое: сразу видно, что происходит */
+.ttbox.tin{background:#eaf8ef;box-shadow:inset 0 0 0 2px #b9e5c8}
+.ttbox.tin b{color:#2f8a5b}.ttbox.tin .bar i{background:#4fbf82}
+.ttbox.tout{background:#fdecf1;box-shadow:inset 0 0 0 2px #f6c3d2}
+.ttbox.tout b{color:#c0476f}.ttbox.tout .bar i{background:#ec7fa0}
 .rooms{grid-auto-rows:1fr}
 .rcard{min-height:192px;box-sizing:border-box}
 .a-clean .pet{animation:wiggle .4s infinite}
@@ -376,8 +382,17 @@ function parrotSvg(){
   </svg>`;
 }
 
+// Фото-мордочки котов и шпицев: у каждого гостя своя (выбирается при звонке)
+const PHOTOS={cat:['cat1','cat2','cat3'],dog:['dog1','dog2','dog3']};
+const photoImg=n=>`<img class="pv photo" src="pets/${n}.png" alt="" draggable="false">`;
+function face(g){
+  const L=PHOTOS[g.type];if(!L)return PET[g.type].svg;
+  let i=g.look;if(i==null){i=0;for(const ch of g.name||'')i+=ch.charCodeAt(0)} // у старых гостей — по кличке
+  return photoImg(L[i%L.length]);
+}
+
 // ---------- Данные ----------
-const VERSION='2.4';
+const VERSION='2.5';
 const SAVE_KEY='pethotel_v4'; // 2.1 — несколько отелей; сохранение 2.0 (pethotel_v3) переносится и не удаляется
 const OLD_KEY='pethotel_v3';
 const PET={
@@ -522,7 +537,7 @@ function load(){try{const s=localStorage.getItem(SAVE_KEY);return s?JSON.parse(s
 function newGuest(){
   const type=pick(K.pets),T=PET[type];
   const needs=Object.keys(NEED).filter(k=>NEED[k][type]&&Math.random()<0.5);
-  return {type,name:pick(T.names),age:Math.floor(rnd(1,12)),like:pick(T.likes),needs};
+  return {type,name:pick(T.names),age:Math.floor(rnd(1,12)),like:pick(T.likes),needs,look:Math.floor(Math.random()*6)};
 }
 // Реклама: каждый уровень — звонят чаще (средний интервал делится на 1+0.4·ур.)
 const ADS_COST=[150,400,900,1800,3500], ADS_MAX=ADS_COST.length;
@@ -607,6 +622,8 @@ function doService(id,svc,byHelper){
 // Доход за последние 10 игровых минут — по нему считается офлайн-доход
 const RATE_WIN=600, OFF_SHARE=0.5, OFF_MAX_H=8, MGR_LVL=3;
 function logIncome(H,amt){H.log=(H.log||[]).filter(e=>e[0]>H.t-RATE_WIN);H.log.push([Math.round(H.t),amt])}
+// Доход всех отелей за последнюю игровую минуту — показываем в шапке под монетами
+const lastMinute=()=>G.hotels.reduce((a,H)=>a+(H.log||[]).filter(e=>e[0]>H.t-60).reduce((b,e)=>b+e[1],0),0);
 function incomeRate(H){ // монет в секунду
   const L=(H.log||[]).filter(e=>e[0]>H.t-RATE_WIN);
   return L.reduce((a,e)=>a+e[1],0)/Math.min(RATE_WIN,Math.max(120,H.t));
@@ -711,7 +728,7 @@ function queueHTML(){
   const can=freeSlots()>0;
   if(!S.queue.length)return `<div class="qbar">📋 Очередь пуста<span class="arr">☎️ администратор на связи</span></div>`;
   return `<div class="qbar ${can?'go':''}" data-act="qtoggle">📋 Очередь: ${S.queue.length}<span class="arr">${can?'☎️ перезваниваем… ':''}${qOpen?'свернуть ▴':'развернуть ▾'}</span></div>`+
-    (qOpen?`<div class="qlist">${S.queue.map(q=>`<div class="qi"><span class="av">${PET[q.pet.type].svg}</span><div><b>${q.pet.name}</b><small>${PET[q.pet.type].kind}, ${q.pet.age} ${years(q.pet.age)} · ждёт ещё <span data-x="qexp:${q.id}"></span></small></div><button data-act="qcall" data-k="${q.id}" ${can?'':'disabled'}>📞 Позвонить</button></div>`).join('')}</div>`:'');
+    (qOpen?`<div class="qlist">${S.queue.map(q=>`<div class="qi"><span class="av">${face(q.pet)}</span><div><b>${q.pet.name}</b><small>${PET[q.pet.type].kind}, ${q.pet.age} ${years(q.pet.age)} · ждёт ещё <span data-x="qexp:${q.id}"></span></small></div><button data-act="qcall" data-k="${q.id}" ${can?'':'disabled'}>📞 Позвонить</button></div>`).join('')}</div>`:'');
 }
 function lobbyHTML(){
   const L=S.pets.filter(p=>p.state==='coming'||p.state==='arrived');
@@ -727,7 +744,7 @@ function guestReadyHTML(p){ // карточка в приёмной: видно,
   const txt=p.meetAct?`${who}: ${MEET[p.meetAct.k].name.toLowerCase()}…`
     :p.did.length>=3?(freeRoom()<0?'⏳ ждёт, пока освободится номер':adm?'🛎️ Администратор заселяет…':'знакомство пройдено — можно заселять')
     :waitAdm?'🛎️ Администратор занят — ждёт очереди (или тапни сам)':adm?'🛎️ Администратор сейчас подойдёт':'тапни, чтобы познакомиться';
-  return `<div class="guest ${busy?'busy':'ready'}" data-act="meet" data-k="${p.id}"><div class="av">${PET[p.type].svg}</div><div><b>${p.name} приехал!</b><small>${txt}</small>${steps}${p.meetAct?`<div class="bar"><i data-w="meet:${p.id}" style="background:var(--accent2)"></i></div>`:''}</div></div>`;
+  return `<div class="guest ${busy?'busy':'ready'}" data-act="meet" data-k="${p.id}"><div class="av">${face(p)}</div><div><b>${p.name} приехал!</b><small>${txt}</small>${steps}${p.meetAct?`<div class="bar"><i data-w="meet:${p.id}" style="background:var(--accent2)"></i></div>`:''}</div></div>`;
 }
 function roomHTML(i){
   const p=S.pets.find(x=>x.room===i);
@@ -748,12 +765,12 @@ function roomHTML(i){
   const pick=p.state==='pickup'||p.state==='checkout',trans=p.state==='checkin'||p.state==='checkout';
   return `<div class="rcard ${pick?'pickup':''}" id="room-${i}">
     <div class="rhead"><span>Номер ${i+1}</span><span class="tar" title="${T.name}">${p.reqs.length?[...new Set(p.reqs.map(r=>r.svc))].map(k=>SVC[k].icon).join(''):T.icon}</span></div>
-    <div class="rbody"><div class="petbox ${anim}"><div class="bed"></div><div class="bowl">🥣</div><div class="pet">${PET[p.type].svg}</div><div class="fx">${fxs}</div></div>
+    <div class="rbody"><div class="petbox ${anim}"><div class="bed"></div><div class="bowl">🥣</div><div class="pet">${face(p)}</div><div class="fx">${fxs}</div></div>
       <div class="rinfo"><div class="nm">${p.name}</div>
         <div class="lbl"><span>😊</span><span data-x="mood:${p.id}"></span></div><div class="bar"><i data-w="mood:${p.id}"></i></div>
         <div class="lbl"><span>${pick?'🚗':'⏱'}</span><span data-x="left:${p.id}"></span></div><div class="bar"><i data-w="stay:${p.id}" style="background:#9fb7e8"></i></div>
       </div></div>
-    ${trans?`<div class="ttbox"><b>${p.state==='checkin'?'🛎️ Заселение':'🚗 Выселение'}</b><span>«${p.name}»</span><div class="bar"><i data-w="tt:${p.id}"></i></div></div>`
+    ${trans?`<div class="ttbox ${p.state==='checkin'?'tin':'tout'}"><b>${p.state==='checkin'?'🛎️ Заселение':'🚗 Выселение'}</b><span>«${p.name}»</span><div class="bar"><i data-w="tt:${p.id}"></i></div></div>`
       :pick?`<button class="pickbtn" data-act="pickup" data-k="${p.id}">🚗 Отдать</button>`:`<div class="acts">${btns}</div>`}
   </div>`;
 }
@@ -785,7 +802,7 @@ function morphEl(x,y){
 function render(){
   morph($('app'),`<div class="head">${tabsHTML()}
     <div class="top">
-      <div class="pill"><span data-x="money"></span> 💰<small>монеты</small></div>
+      <div class="pill"><span data-x="money"></span> 💰<small data-x="perMin"></small></div>
       <div class="pill"><span data-x="rating"></span> ⭐<small>рейтинг</small></div>
       <div class="pill">${inRooms()}/${S.rooms} 🐾<small>гостей</small></div>
     </div>
@@ -810,7 +827,8 @@ function update(){ // каждый кадр: только цифры и поло
   }
   for(const el of document.querySelectorAll('#app [data-x]')){
     const [k,id]=el.dataset.x.split(':');let t='';
-    if(k==='money')t=fmt(S.money);else if(k==='rating')t=rating().toFixed(1);
+    if(k==='money')t=fmt(S.money);
+    else if(k==='perMin'){const m=lastMinute();t=m>0?`+${fmt(m)} за мин`:'монеты'}else if(k==='rating')t=rating().toFixed(1);
     else if(k==='qexp'){const q=S.queue.find(x=>x.id===+id);if(!q)continue;const r=Math.max(0,Math.ceil(q.exp-S.t));t=r>=60?Math.floor(r/60)+' мин '+(r%60)+' с':r+' с'}
     else{const p=pet(+id);if(!p)continue;
       if(k==='eta')t=Math.max(1,Math.ceil(p.eta));
@@ -825,7 +843,7 @@ function callSheet(){
   const c=S.call;if(!c)return '';
   const g=c.pet,T=PET[g.type],can=freeSlots()>0;
   return `<div class="sh-title">📞 Звонок</div>
-    <div class="bigpet">${T.svg}</div>
+    <div class="bigpet">${face(g)}</div>
     <div class="bubble">Здравствуйте! Это хозяйка ${T.whose} по кличке <b>${g.name}</b>. Ему ${g.age} ${years(g.age)}, ${g.like}. Можно к вам на передержку? 🙏</div>
     <div class="choices"><button class="bigbtn green" data-act="yes" ${can?'':'disabled'}>${can?'Мы вас ждём!':'Свободных номеров нет'}</button>${!can&&S.staff.phone?`<button class="bigbtn green" data-act="queue" ${S.queue.length<QUEUE_MAX?'':'disabled'}>📋 В очередь${S.queue.length>=QUEUE_MAX?' (полная)':''}</button>`:''}<button class="bigbtn ghost" data-act="no">Нет мест</button></div>`;
 }
@@ -834,7 +852,7 @@ function meetSheet(id){
   const T=PET[p.type];
   return `<div class="sh-title">🐾 Знакомство: ${p.name}</div>
     <div class="sh-sub">${T.kind}, ${p.age} ${years(p.age)} · ${p.like}</div>
-    <div class="bigpet" id="bigpet">${T.svg}</div>
+    <div class="bigpet" id="bigpet">${face(p)}</div>
     <div class="react-txt">${p.meetAct?MEET[p.meetAct.k].name+'…':p.react||'Познакомьтесь с гостем 💛'}</div>
     <div class="acts3">${Object.entries(MEET).map(([k,m])=>{const doing=p.meetAct&&p.meetAct.k===k;
       return `<button class="${doing?'doing':p.did.includes(k)?'did':''}" data-act="meetdo" data-k="${p.id}:${k}">${m.icon}<small>${p.did.includes(k)?'✅ '+m.name:m.name}</small>${doing?`<i class="prog" data-w="meet:${p.id}"></i>`:''}</button>`}).join('')}</div>
@@ -959,7 +977,7 @@ function petInfoSheet(id){
   const T=TAR[p.tariff];
   return `<div class="sh-title">${p.name} · ${T.icon} ${T.name}</div>
     <div class="sh-sub">${PET[p.type].kind}, ${p.age} ${years(p.age)} · ${p.like}</div>
-    <div class="bigpet">${PET[p.type].svg}</div>
+    <div class="bigpet">${face(p)}</div>
     ${p.reqs.map(r=>`<div class="row"><span class="ic">${SVC[r.svc].icon}</span><div><b>${svcName(r.svc,p)}</b><small>${r.done?'✅ сделано':r.miss?'❌ пропущено':onCd(p,r.svc)?'⏳ отдыхает':'можно делать'}</small></div></div>`).join('')}`;
 }
 function renderSheet(){
@@ -1072,10 +1090,10 @@ let introOn=true;
 const INTRO_SLIDE=2; // секунд на каждую сцену заставки
 const awaySec=G.saved?(Date.now()-G.saved)/1000:0; // офлайн считаем по моменту запуска, а не по закрытию заставки
 const SCENES=[
-  {hero:PET.cat.svg,props:[['📞',8,14],['💬',72,10]],cap:'Принимаем звонки'},
-  {hero:PET.dog.svg,props:[['🩺',6,60],['🎾',76,62]],cap:'Знакомимся с гостями'},
-  {hero:PET.cat.svg+PET.dog.svg,two:true,props:[['🛁',6,12],['🍖',78,14]],cap:'Кормим, моем, стрижём'},
-  {hero:PET.dog.svg,props:[['🛎️',8,12],['🧑',76,58]],cap:'Нанимаем помощников'},
+  {hero:photoImg('cat1'),props:[['📞',8,14],['💬',72,10]],cap:'Принимаем звонки'},
+  {hero:photoImg('dog1'),props:[['🩺',6,60],['🎾',76,62]],cap:'Знакомимся с гостями'},
+  {hero:photoImg('cat3')+photoImg('dog3'),two:true,props:[['🛁',6,12],['🍖',78,14]],cap:'Кормим, моем, стрижём'},
+  {hero:photoImg('dog2'),props:[['🛎️',8,12],['🧑',76,58]],cap:'Нанимаем помощников'},
   {hero:PET.rabbit.svg,props:[['🥕',8,58],['⭐',76,10]],cap:'Открываем новые отели'},
   {hero:PET.hamster.svg+PET.parrot.svg,two:true,props:[['🎡',6,12],['💬',78,12]],cap:'Хомяки, кролики, попугаи…'},
 ];
