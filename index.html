@@ -289,7 +289,7 @@ img.pv.photo{border-radius:50%;box-shadow:0 0 0 .05em #fff,0 .04em .1em #0004;ob
 .rcard.lv2:not(.pickup){box-shadow:inset 0 0 0 2px #f4c995,0 3px 0 #ecc69b}
 .rcard.lv2 .rhead .rst{color:#e08a1e}
 .rcard.lv3{background:linear-gradient(160deg,#f4ecff,#e3d4fb)}
-.rcard.lv3:not(.pickup){box-shadow:inset 0 0 0 2px #cdb4f4,0 3px 0 #cbb6ee}
+.rcard.lv3:not(.pickup){box-shadow:inset 0 0 0 2px #e2b84a,inset 0 0 0 3.5px #f7e3a3,0 3px 0 #cbb6ee} /* золотая окантовка */
 .rcard.lv3 .rhead .rst{color:#9b6fe0}
 .rcard.free.lv2{background:repeating-linear-gradient(135deg,#fff0dc 0 12px,#ffe2c2 12px 24px)}
 .rcard.free.lv3{background:repeating-linear-gradient(135deg,#f3ecff 0 12px,#e9dffb 12px 24px)}
@@ -301,12 +301,12 @@ img.pv.photo{border-radius:50%;box-shadow:0 0 0 .05em #fff,0 .04em .1em #0004;ob
 .rcard.lv2 .petbox::before{content:'';position:absolute;left:1px;right:1px;bottom:12px;height:30px;border-radius:15px;background:#fff1e6;box-shadow:inset 0 0 0 1.5px #f3d9c4,0 1px 0 #e9cdb7}
 .rcard.lv2 .petbox .bed{left:-3px;right:-3px;bottom:0;height:21px;border-radius:50%/60%;background:linear-gradient(#ffe8ee,#f5c9d6);box-shadow:inset 0 4px 0 #fffb,0 2px 0 #e3aebe}
 /* Люкс: фиолетовая подушка с золотой окантовкой и кисточками */
-.rcard.lv3 .petbox::before{content:'';position:absolute;left:1px;right:1px;bottom:12px;height:30px;border-radius:15px;background:linear-gradient(#f6f0ff,#e6d9fc);box-shadow:inset 0 0 0 1.5px #d8c4f6,0 1px 0 #c9b2ee}
-.rcard.lv3 .petbox .bed{left:-3px;right:-3px;bottom:0;height:21px;border-radius:50%/60%;background:linear-gradient(#d7bfff,#ae8be9);box-shadow:inset 0 4px 0 #fff7,inset 0 -2px 0 #e2bd4f,0 2px 0 #8f6fd0}
-/* кисточки по краям лежанки */
-.rcard.lv3 .petbox::after{content:'';position:absolute;left:-7px;right:-7px;bottom:0;height:13px;pointer-events:none;z-index:2;
-  background:radial-gradient(ellipse 2.6px 4px at 3px 8px,#f0c443 92%,transparent),radial-gradient(ellipse 2.6px 4px at calc(100% - 3px) 8px,#f0c443 92%,transparent),
-  linear-gradient(#c99a26,#c99a26) 2.5px 0/1.2px 5px no-repeat,linear-gradient(#c99a26,#c99a26) calc(100% - 2.5px) 0/1.2px 5px no-repeat}
+.rcard.lv3 .petbox::before{content:none}
+/* Люкс: квадратная подушка с золотым кантом и кисточками на уголках */
+.rcard.lv3 .petbox .bed{left:4px;right:4px;bottom:3px;height:30px;border-radius:7px;background:linear-gradient(150deg,#e3d0ff,#b994ef);box-shadow:inset 0 0 0 1.5px #e2b84a,inset 0 3px 0 #fff6,0 2px 0 #8f6fd0}
+.rcard.lv3 .petbox::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:38px;pointer-events:none;z-index:2;
+  background:radial-gradient(circle at 4px 4px,#f0c443 2.6px,#c99a26 3px,transparent 3.4px),radial-gradient(circle at calc(100% - 4px) 4px,#f0c443 2.6px,#c99a26 3px,transparent 3.4px),
+  radial-gradient(circle at 4px calc(100% - 4px),#f0c443 2.6px,#c99a26 3px,transparent 3.4px),radial-gradient(circle at calc(100% - 4px) calc(100% - 4px),#f0c443 2.6px,#c99a26 3px,transparent 3.4px)}
 /* ---- Заставка ---- */
 #intro{position:fixed;inset:0;z-index:50;background:radial-gradient(circle at 50% 35%,#ffe3c4,#ffb98a 55%,#f08a5d);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;transition:opacity .5s;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom)}
 #intro.out{opacity:0;pointer-events:none}
@@ -429,7 +429,7 @@ function face(g){
 }
 
 // ---------- Данные ----------
-const VERSION='2.6.1';
+const VERSION='2.6.2';
 const SAVE_KEY='pethotel_v4'; // 2.1 — несколько отелей; сохранение 2.0 (pethotel_v3) переносится и не удаляется
 const OLD_KEY='pethotel_v3';
 const PET={
